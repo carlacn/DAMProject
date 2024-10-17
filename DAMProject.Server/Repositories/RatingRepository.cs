@@ -6,10 +6,10 @@ namespace DAMProject.Server.Repositories
 {
     public interface IRatingRepository
     {
-        Task<IEnumerable<Rating>> GetRatings();
-        Task<Rating> GetRatingById(int id);
-        Task<int> CreateRating(Rating rating);
-        Task<int> UpdateRating(Rating rating);
+        Task<IEnumerable<Score>> GetRatings();
+        Task<Score> GetRatingById(int id);
+        Task<int> CreateRating(Score rating);
+        Task<int> UpdateRating(Score rating);
         Task DeleteRating(int id);
     }
 
@@ -18,19 +18,19 @@ namespace DAMProject.Server.Repositories
         private readonly IDbConnection _localDbConnection = localDbConnection;
 
 
-        public async Task<IEnumerable<Rating>> GetRatings()
+        public async Task<IEnumerable<Score>> GetRatings()
         {
             var query = "SELECT * FROM ratings";
-            return await _localDbConnection.QueryAsync<Rating>(query);
+            return await _localDbConnection.QueryAsync<Score>(query);
         }
 
-        public async Task<Rating> GetRatingById(int id)
+        public async Task<Score> GetRatingById(int id)
         {
             var query = "SELECT * FROM ratings WHERE id = @Id";
-            return await _localDbConnection.QuerySingleOrDefaultAsync<Rating>(query, new { Id = id });
+            return await _localDbConnection.QuerySingleOrDefaultAsync<Score>(query, new { Id = id });
         }
 
-        public async Task<int> CreateRating(Rating rating)
+        public async Task<int> CreateRating(Score rating)
         {
             var query = "INSERT INTO ratings (user_id, book_id, user_rating, comment) VALUES (@UserId, @BookId, @UserRating, @Comment)";
             var result = await _localDbConnection.ExecuteAsync(query, new { rating.UserId, rating.BookId, rating.UserRating, rating.Comment });
@@ -38,9 +38,9 @@ namespace DAMProject.Server.Repositories
             return result > 0 ? result : throw new Exception("Error creating rating.");
         }
 
-        public async Task<int> UpdateRating(Rating newRating)
+        public async Task<int> UpdateRating(Score newRating)
         {
-            var currentRating = await _localDbConnection.QuerySingleOrDefaultAsync<Rating>(
+            var currentRating = await _localDbConnection.QuerySingleOrDefaultAsync<Score>(
                                 "SELECT * FROM ratings WHERE id = @Id", new { newRating.Id });
 
             if (currentRating == null)
@@ -69,9 +69,9 @@ namespace DAMProject.Server.Repositories
             await _localDbConnection.ExecuteAsync(query, new { Id = id });
         }
 
-        private Rating MapRating(Rating newRating, Rating currentRating)
+        private Score MapRating(Score newRating, Score currentRating)
         {
-            return new Rating
+            return new Score
             {
                 Id = currentRating.Id,
                 UserId = newRating.UserId > 0 ? newRating.UserId : currentRating.UserId,

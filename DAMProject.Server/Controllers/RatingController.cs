@@ -34,7 +34,7 @@ namespace DAMProject.Server.Controllers
 
         [HttpPost]
         //[Authorize(Policy = "UserPolicy")]
-        public async Task<IActionResult> CreateRating([FromBody] Rating rating)
+        public async Task<IActionResult> CreateRating([FromBody] Score rating)
         {
             await _ratingService.CreateRating(rating);
             return CreatedAtAction(nameof(GetRatingById), new { id = rating.Id }, rating);
@@ -42,7 +42,7 @@ namespace DAMProject.Server.Controllers
 
         [HttpPut("{id}")]
         //[Authorize(Policy = "UserPolicy")]
-        public async Task<IActionResult> UpdateRating(int id, [FromBody] Rating rating)
+        public async Task<IActionResult> UpdateRating(int id, [FromBody] Score rating)
         {
             if (id != rating.Id) return BadRequest();
             await _ratingService.UpdateRating(rating);

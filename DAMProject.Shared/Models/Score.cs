@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace DAMProject.Shared.Models
 {
-    public class Rating
+    public class Score
     {
         public int Id { get; set; }
         public int UserId { get; set; }
