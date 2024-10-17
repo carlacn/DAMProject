@@ -1,0 +1,42 @@
+﻿@page "/genres"
+@inject HttpClient Http
+
+<PageTitle>Genres</PageTitle>
+
+<h1>Genres</h1>
+
+<p>This component demonstrates fetching data from the server.</p>
+
+@if (genres == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var genre in genres)
+            {
+                <tr>
+                    <td>@genre.Id</td>
+                    <td>@genre.Name</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private Genre[]? genres;
+
+    protected override async Task OnInitializedAsync()
+    {
+        genres = await Http.GetFromJsonAsync<Genre[]>("api/genre");
+    }
+}

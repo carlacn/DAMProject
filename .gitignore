@@ -1,0 +1,61 @@
+# Exclude build directories
+bin/
+obj/
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Visual Studio specific files
+.vs/
+.vscode/
+.idea/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Rider
+.idea/
+
+# DotNet specific
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# NuGet packages
+*.nupkg
+*.snupkg
+*.symbols.nupkg
+
+# Lock files
+*.lock.json
+
+# Logs
+*.log
+logs/
+crashlog.txt
+
+# Azure specific
+.localhistory/
+.history/
+azure-pipelines.yml
+
+# Exclude compiled code
+*.dll
+*.exe
+*.pdb
+
+# Exclude any temporary files
+*.tmp
+*.cache
+
+# Rider Local History
+.idea/.idea_modules.xml
+.idea/.modules.xml
+
+# Ignore generated static files for Blazor WebAssembly
+BlazorWebAssemblyTemplate.Client/wwwroot/css/site.min.css
+BlazorWebAssemblyTemplate.Client/wwwroot/js/site.min.js
