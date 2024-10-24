@@ -7,9 +7,9 @@ namespace DAMProject.Server.Repositories
     public interface IAuthorRepository
     {
         Task<IEnumerable<Author>> GetAuthors();
-        Task<Author> GetAuthorById(int id);   
+        Task<Author> GetAuthorById(int id);
         Task<int> CreateAuthor(Author author);
-        Task<int> UpdateAuthor(Author author);  
+        Task<int> UpdateAuthor(Author author);
         Task<int> DeleteAuthor(int id);
     }
 
@@ -19,21 +19,21 @@ namespace DAMProject.Server.Repositories
 
         public async Task<IEnumerable<Author>> GetAuthors()
         {
-            var query = @"SELECT id, name, biography FROM authors";
+            var query = @"SELECT id, name, biography, image FROM authors";
             return await _localDbConnection.QueryAsync<Author>(query);
         }
 
         public async Task<Author> GetAuthorById(int id)
         {
-            var query = @"SELECT id, name, biography FROM authors WHERE id = @Id";
+            var query = @"SELECT id, name, biography, image FROM authors WHERE id = @Id";
             return await _localDbConnection.QuerySingleOrDefaultAsync<Author>(query, new { Id = id });
         }
 
         public async Task<int> CreateAuthor(Author author)
         {
-            var query = @"INSERT INTO authors (name, biography) 
-                          VALUES (@Name, @Biography)";
-            var result = await _localDbConnection.ExecuteAsync(query, new { author.Name, author.Biography });
+            var query = @"INSERT INTO authors (name, biography, image) 
+                          VALUES (@Name, @Biography, @Image)";
+            var result = await _localDbConnection.ExecuteAsync(query, new { author.Name, author.Biography, author.Image });
 
             return result;
         }
@@ -45,19 +45,20 @@ namespace DAMProject.Server.Repositories
 
             if (currentAuthor == null)
             {
-                return 0; 
+                return 0;
             }
 
             var updatedAuthor = MapAuthor(newAuthor, currentAuthor);
 
             var query = @"UPDATE authors 
-                  SET name = @Name, biography = @Biography 
+                  SET name = @Name, biography = @Biography, image = @Image
                   WHERE id = @Id";
 
             var result = await _localDbConnection.ExecuteAsync(query, new
             {
                 updatedAuthor.Name,
                 updatedAuthor.Biography,
+                updatedAuthor.Image,
                 updatedAuthor.Id
             });
 
@@ -76,7 +77,8 @@ namespace DAMProject.Server.Repositories
             {
                 Id = currentAuthor.Id,
                 Name = !string.IsNullOrEmpty(newAuthor.Name) ? newAuthor.Name : currentAuthor.Name,
-                Biography = !string.IsNullOrEmpty(newAuthor.Biography) ? newAuthor.Biography : currentAuthor.Biography
+                Biography = !string.IsNullOrEmpty(newAuthor.Biography) ? newAuthor.Biography : currentAuthor.Biography,
+                Image = !string.IsNullOrEmpty(newAuthor.Image) ? newAuthor.Image : currentAuthor.Image
             };
         }
     }

@@ -1,6 +1,7 @@
 ﻿using DAMProject.Shared.Models;
 using Dapper;
 using System.Data;
+using System.Data.SqlClient;
 
 namespace DAMProject.Server.Repositories
 {
@@ -20,21 +21,23 @@ namespace DAMProject.Server.Repositories
         public async Task<IEnumerable<Book>> GetBooks()
         {
             var query = @"SELECT id, title, genre_id AS GenreId, publisher_id AS PublisherId, series_id AS SeriesId, 
-                        read_date AS ReadDate, status, average_rating AS AverageRating, comments, user_id AS UserId, format 
-                        FROM books";
+                    comments, user_id AS UserId, image 
+                    FROM books";
             return await _localDbConnection.QueryAsync<Book>(query);
         }
 
         public async Task<Book> GetBookById(int id)
         {
-            var query = @"SELECT id, title, genre_id, publisher_id, series_id, read_date, status, average_rating, comments, user_id, format FROM books WHERE id = @Id";
+            var query = @"SELECT id, title, genre_id AS GenreId, publisher_id AS PublisherId, series_id AS SeriesId, 
+                    comments, user_id AS UserId, image 
+                    FROM books WHERE id = @Id";
             return await _localDbConnection.QuerySingleOrDefaultAsync<Book>(query, new { Id = id });
         }
 
         public async Task<int> CreateBook(Book book)
         {
-            var query = @"INSERT INTO books (title, genre_id, publisher_id, series_id, read_date, status, average_rating, comments, user_id, format)
-                          VALUES (@Title, @GenreId, @PublisherId, @SeriesId, @ReadDate, @Status, @AverageRating, @Comments, @UserId, @Format)";
+            var query = @"INSERT INTO books (title, genre_id, publisher_id, series_id, comments, user_id, image)
+                  VALUES (@Title, @GenreId, @PublisherId, @SeriesId, @Comments, @UserId, @Image)";
             var result = await _localDbConnection.ExecuteAsync(query, book);
 
             return result > 0 ? result : throw new Exception("Error creating book.");
@@ -42,8 +45,7 @@ namespace DAMProject.Server.Repositories
 
         public async Task<int> UpdateBook(Book newBook)
         {
-            var currentBook = await _localDbConnection.QuerySingleOrDefaultAsync<Book>(
-                    "SELECT * FROM books WHERE id = @Id", new { newBook.Id });
+            var currentBook = await GetBookById(newBook.Id);
 
             if (currentBook == null)
             {
@@ -53,8 +55,8 @@ namespace DAMProject.Server.Repositories
             var updatedBook = MapBook(newBook, currentBook);
 
             var query = @"UPDATE books 
-                  SET title = @Title, genre_id = @GenreId, publisher_id = @PublisherId, series_id = @SeriesId, read_date = @ReadDate, 
-                      status = @Status, average_rating = @AverageRating, comments = @Comments, user_id = @UserId, format = @Format
+                  SET title = @Title, genre_id = @GenreId, publisher_id = @PublisherId, series_id = @SeriesId, 
+                      comments = @Comments, user_id = @UserId, image = @Image
                   WHERE id = @Id";
 
             var result = await _localDbConnection.ExecuteAsync(query, new
@@ -63,12 +65,9 @@ namespace DAMProject.Server.Repositories
                 updatedBook.GenreId,
                 updatedBook.PublisherId,
                 updatedBook.SeriesId,
-                updatedBook.ReadDate,
-                updatedBook.Status,
-                updatedBook.AverageRating,
                 updatedBook.Comments,
                 updatedBook.UserId,
-                updatedBook.Format,
+                updatedBook.Image,
                 updatedBook.Id
             });
 
@@ -76,9 +75,19 @@ namespace DAMProject.Server.Repositories
         }
 
         public async Task DeleteBook(int id)
-        {
-            var query = @"DELETE FROM books WHERE id = @Id";
-            await _localDbConnection.ExecuteAsync(query, new { Id = id });
+        { 
+            var deleteBookAuthorRelations = "DELETE FROM book_author WHERE book_id = @BookId";
+            await _localDbConnection.ExecuteAsync(deleteBookAuthorRelations, new { BookId = id });
+
+            var deleteRatingsRelations = "DELETE FROM score WHERE book_id = @BookId";
+            await _localDbConnection.ExecuteAsync(deleteRatingsRelations, new { BookId = id });
+
+            var deleteFavoritesRelations = "DELETE FROM favorites WHERE book_id = @BookId";
+            await _localDbConnection.ExecuteAsync(deleteFavoritesRelations, new { BookId = id });
+
+            var deleteBookQuery = "DELETE FROM books WHERE id = @Id";
+            await _localDbConnection.ExecuteAsync(deleteBookQuery, new { Id = id });
+            
         }
         private Book MapBook(Book newBook, Book currentBook)
         {
@@ -89,14 +98,12 @@ namespace DAMProject.Server.Repositories
                 GenreId = newBook.GenreId > 0 ? newBook.GenreId : currentBook.GenreId,
                 PublisherId = newBook.PublisherId > 0 ? newBook.PublisherId : currentBook.PublisherId,
                 SeriesId = newBook.SeriesId > 0 ? newBook.SeriesId : currentBook.SeriesId,
-                ReadDate = newBook.ReadDate != default ? newBook.ReadDate : currentBook.ReadDate,
-                Status = !string.IsNullOrEmpty(newBook.Status) ? newBook.Status : currentBook.Status,
-                AverageRating = newBook.AverageRating > 0 ? newBook.AverageRating : currentBook.AverageRating,
                 Comments = !string.IsNullOrEmpty(newBook.Comments) ? newBook.Comments : currentBook.Comments,
                 UserId = newBook.UserId > 0 ? newBook.UserId : currentBook.UserId,
-                Format = !string.IsNullOrEmpty(newBook.Format) ? newBook.Format : currentBook.Format
+                Image = !string.IsNullOrEmpty(newBook.Image) ? newBook.Image : currentBook.Image
             };
         }
+
     }
 }
 

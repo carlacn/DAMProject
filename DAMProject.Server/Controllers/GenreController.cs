@@ -27,14 +27,14 @@ namespace DAMProject.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateGenre(Genre genre)
+        public async Task<IActionResult> CreateGenre([FromBody] Genre genre)
         {
             await _genreService.CreateGenre(genre);
             return Created();
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateGenre(int id, Genre genre)
+        public async Task<IActionResult> UpdateGenre(int id, [FromBody] Genre genre)
         {
             if (id != genre.Id) return BadRequest();
             await _genreService.UpdateGenre(genre);

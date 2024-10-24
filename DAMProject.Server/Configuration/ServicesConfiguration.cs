@@ -14,7 +14,7 @@ namespace DAMProject.Server.Configuration
                 .AddScoped<IPublisherService, PublisherService>()
                 .AddScoped<ISeriesService, SeriesService>()
                 .AddScoped<IFavoritesService, FavoritesService>()
-                .AddScoped<IRatingService, RatingService>();
+                .AddScoped<IScoreService, ScoreService>();
          
 
             return builder;

@@ -1,0 +1,79 @@
+﻿@page "/publishers"
+@using DAMProject.Shared.Models
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<PageTitle>Publisher</PageTitle>
+
+<DataGrid TItem="Publisher"
+          Data="@publisherList"
+          @bind-SelectedRow="@selectedPublisher"
+          Editable
+          Responsive
+          ShowPager
+          CommandMode="DataGridCommandMode.ButtonRow"
+          EditMode="DataGridEditMode.Popup"
+          RowUpdated="RowUpdated"
+          RowRemoved="RowRemoved"
+          RowInserted="RowInserted">
+    <DataGridColumns>
+        <DataGridCommandColumn NewCommandAllowed="true" EditCommandAllowed="true" DeleteCommandAllowed="true" CancelCommandAllowed="true">
+            <SaveCommandTemplate>
+                <Button ElementId="btnSave" Type="ButtonType.Submit" PreventDefaultOnSubmit Color="Color.Primary" Clicked="@context.Clicked">@context.LocalizationString</Button>
+            </SaveCommandTemplate>
+            <CancelCommandTemplate>
+                <Button ElementId="btnCancel" Color="Color.Secondary" Clicked="@context.Clicked">@context.LocalizationString</Button>
+            </CancelCommandTemplate>
+        </DataGridCommandColumn>
+        <DataGridColumn TItem="Publisher" Field="Id" Caption="Id" Editable="false" />
+        <DataGridColumn TItem="Publisher" Field="Name" Caption="Name" Editable="true" />
+        <DataGridColumn TItem="Publisher" Field="Edition" Caption="Edition" Editable="true" />
+    </DataGridColumns>
+
+    <ButtonRowTemplate>
+        <Button Color="Color.Success" Clicked="context.NewCommand.Clicked">New</Button>
+        <Button Color="Color.Primary" Disabled="(selectedPublisher is null)" Clicked="context.EditCommand.Clicked">Edit</Button>
+        <Button Color="Color.Danger" Disabled="(selectedPublisher is null)" Clicked="context.DeleteCommand.Clicked">Delete</Button>
+        <Button Color="Color.Link" Clicked="context.ClearFilterCommand.Clicked">Clear Filter</Button>
+    </ButtonRowTemplate>
+</DataGrid>
+
+@code {
+    private List<Publisher>? publisherList;
+    private Publisher selectedPublisher;
+
+    protected override async Task OnInitializedAsync()
+    {
+        publisherList = await Http.GetFromJsonAsync<List<Publisher>>("api/publisher");
+    }
+
+    private async Task RowInserted(SavedRowItem<Publisher, Dictionary<string, object>> e)
+    {
+        var newPublisher = e.Item;
+        var response = await Http.PostAsJsonAsync("api/publisher", newPublisher);
+
+        if (response.IsSuccessStatusCode)
+        {
+            NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+        }
+    }
+
+    private async Task RowUpdated(SavedRowItem<Publisher, Dictionary<string, object>> e)
+    {
+        var publisher = e.Item;
+        var response = await Http.PutAsJsonAsync($"api/publisher/{publisher.Id}", publisher);
+        if (!response.IsSuccessStatusCode)
+        {
+            NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+        }
+    }
+
+    private async Task RowRemoved(Publisher publisher)
+    {
+        var response = await Http.DeleteAsync($"api/publisher/{publisher.Id}");
+        if (response.IsSuccessStatusCode)
+        {
+            publisherList.Remove(publisher);
+        }
+    }
+}

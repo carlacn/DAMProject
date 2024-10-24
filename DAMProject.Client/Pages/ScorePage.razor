@@ -1,0 +1,81 @@
+﻿@page "/score"
+@using DAMProject.Shared.Models
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<PageTitle>Scores</PageTitle>
+
+<DataGrid TItem="Score"
+          Data="@scoresList"
+          @bind-SelectedRow="@selectedScore"
+          Editable
+          Responsive
+          ShowPager
+          CommandMode="DataGridCommandMode.ButtonRow"
+          EditMode="DataGridEditMode.Popup"
+          RowUpdated="RowUpdated"
+          RowRemoved="RowRemoved"
+          RowInserted="RowInserted">
+    <DataGridColumns>
+        <DataGridCommandColumn NewCommandAllowed="true" EditCommandAllowed="true" DeleteCommandAllowed="true" CancelCommandAllowed="true">
+            <SaveCommandTemplate>
+                <Button ElementId="btnSave" Type="ButtonType.Submit" PreventDefaultOnSubmit Color="Color.Primary" Clicked="@context.Clicked">@context.LocalizationString</Button>
+            </SaveCommandTemplate>
+            <CancelCommandTemplate>
+                <Button ElementId="btnCancel" Color="Color.Secondary" Clicked="@context.Clicked">@context.LocalizationString</Button>
+            </CancelCommandTemplate>
+        </DataGridCommandColumn>
+        <DataGridColumn TItem="Score" Field="Id" Caption="Id" Editable="false" />
+        <DataGridColumn TItem="Score" Field="UserId" Caption="User Id" Editable="true" />
+        <DataGridColumn TItem="Score" Field="BookId" Caption="Book Id" Editable="true" />
+        <DataGridColumn TItem="Score" Field="UserRating" Caption="Score" Editable="true" />
+        <DataGridColumn TItem="Score" Field="Comment" Caption="Comment" Editable="true" />
+    </DataGridColumns>
+
+    <ButtonRowTemplate>
+        <Button Color="Color.Success" Clicked="context.NewCommand.Clicked">New</Button>
+        <Button Color="Color.Primary" Disabled="(selectedScore is null)" Clicked="context.EditCommand.Clicked">Edit</Button>
+        <Button Color="Color.Danger" Disabled="(selectedScore is null)" Clicked="context.DeleteCommand.Clicked">Delete</Button>
+        <Button Color="Color.Link" Clicked="context.ClearFilterCommand.Clicked">Clear Filter</Button>
+    </ButtonRowTemplate>
+</DataGrid>
+
+@code {
+    private List<Score>? scoresList;
+    private Score selectedScore;
+
+    protected override async Task OnInitializedAsync()
+    {
+        scoresList = await Http.GetFromJsonAsync<List<Score>>("api/score");
+    }
+
+    private async Task RowInserted(SavedRowItem<Score, Dictionary<string, object>> e)
+    {
+        var newScore = e.Item;
+        var response = await Http.PostAsJsonAsync("api/score", newScore);
+
+        if (response.IsSuccessStatusCode)
+        {
+            NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+        }
+    }
+
+    private async Task RowUpdated(SavedRowItem<Score, Dictionary<string, object>> e)
+    {
+        var score = e.Item;
+        var response = await Http.PutAsJsonAsync($"api/score/{score.Id}", score);
+        if (!response.IsSuccessStatusCode)
+        {
+            NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+        }
+    }
+
+    private async Task RowRemoved(Score score)
+    {
+        var response = await Http.DeleteAsync($"api/score/{score.Id}");
+        if (response.IsSuccessStatusCode)
+        {
+            scoresList.Remove(score);
+        }
+    }
+}

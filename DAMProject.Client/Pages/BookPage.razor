@@ -1,0 +1,100 @@
+﻿@page "/books"
+@using DAMProject.Shared.Models
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+
+<PageTitle>Books</PageTitle>
+
+<DataGrid TItem="Book"
+          Data="@books"
+          @bind-SelectedRow="@selectedBook"
+          Editable
+          Responsive
+          ShowPager
+          CommandMode="DataGridCommandMode.ButtonRow"
+          EditMode="DataGridEditMode.Popup"
+          RowUpdated="RowUpdated"
+          RowRemoved="RowRemoved"
+          RowInserted="RowInserted">
+    <DataGridColumns>
+        <DataGridCommandColumn NewCommandAllowed="false" EditCommandAllowed="false" DeleteCommandAllowed="false" CancelCommandAllowed>
+            <SaveCommandTemplate>
+                <Button ElementId="btnSave" Type="ButtonType.Submit" PreventDefaultOnSubmit Color="Color.Primary" Clicked="@context.Clicked">@context.LocalizationString</Button>
+            </SaveCommandTemplate>
+            <CancelCommandTemplate>
+                <Button ElementId="btnCancel" Color="Color.Secondary" Clicked="@context.Clicked">@context.LocalizationString</Button>
+            </CancelCommandTemplate>
+        </DataGridCommandColumn>
+        <DataGridColumn TItem="Book" Field="Id" Caption="Id" Editable="false"/>
+        <DataGridColumn TItem="Book" Field="Title" Caption="Title" Editable/>
+        <DataGridColumn TItem="Book" Field="GenreId" Caption="Genre" Editable/>
+        <DataGridColumn TItem="Book" Field="PublisherId" Caption="Publisher" Editable/>
+        <DataGridColumn TItem="Book" Field="SeriesId" Caption="Series" Editable/>
+        <DataGridColumn TItem="Book" Field="Comments" Caption="Comments" Editable/>
+        <DataGridColumn TItem="Book" Field="UserId" Caption="User" Editable/>
+        <DataGridColumn TItem="Book" Field="Image" Caption="Image" Editable>
+            <EditTemplate>
+                <div class="w-100">
+                    <FileEdit Changed="@OnChanged" Style="width: 100%;" />
+                </div>
+            </EditTemplate>
+            <DisplayTemplate Context="book">
+                <img src="@book.Image" alt="Book Image" width="100" height="100" />
+            </DisplayTemplate>
+        </DataGridColumn>
+    </DataGridColumns>
+    <ButtonRowTemplate>
+        <Button Color="Color.Success" Clicked="context.NewCommand.Clicked">New</Button>
+        <Button Color="Color.Primary" Disabled="(selectedBook is null)" Clicked="context.EditCommand.Clicked">Edit</Button>
+        <Button Color="Color.Danger" Disabled="(selectedBook is null)" Clicked="context.DeleteCommand.Clicked">Delete</Button>
+        <Button Color="Color.Link" Clicked="context.ClearFilterCommand.Clicked">Clear Filter</Button>
+    </ButtonRowTemplate>
+</DataGrid>
+
+@code {
+    private List<Book>? books;
+    private Book selectedBook;
+
+    protected override async Task OnInitializedAsync()
+    {
+        books = await Http.GetFromJsonAsync<List<Book>>("api/book");
+    }
+
+    private async Task RowInserted(SavedRowItem<Book, Dictionary<string, object>> e)
+    {
+        var newBook = e.Item;
+        var response = await Http.PostAsJsonAsync("api/book", newBook);
+
+        if (response.IsSuccessStatusCode)
+        {
+            NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+        }
+    }
+    private async Task RowUpdated(SavedRowItem<Book, Dictionary<string, object>> e)
+    {
+        var book = e.Item;
+        var response = await Http.PutAsJsonAsync($"api/book/{book.Id}", book);
+        if (!response.IsSuccessStatusCode)
+        {
+            NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+        }
+    }
+
+    private async Task RowRemoved(Book book)
+    {
+        var response = await Http.DeleteAsync($"api/book/{book.Id}");
+        if (response.IsSuccessStatusCode)
+        {
+            books.Remove(book);
+        }        
+    }
+    @code {
+        Task OnChanged(FileChangedEventArgs e)
+        {
+            return Task.CompletedTask;
+        }
+    }
+
+}
+

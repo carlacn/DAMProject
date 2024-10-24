@@ -19,7 +19,7 @@ namespace DAMProject.Server.Repositories
 
         public async Task<IEnumerable<User>> GetUsers()
         {
-            var query = @"SELECT id, name, email, created_at AS CreatedAt FROM users";
+            var query = @"SELECT id, name, email, password, role, created_at AS CreatedAt FROM users";
             return await _localDbConnection.QueryAsync<User>(query);
         }
         public async Task<User> GetUserById(int id)
@@ -31,7 +31,7 @@ namespace DAMProject.Server.Repositories
         public async Task<int> CreateUser(User user)
         {
             var query = "INSERT INTO users (name, email, password, role, created_at) VALUES (@Name, @Email, @Password, @Role, @CreatedAt)";
-            var result = await _localDbConnection.ExecuteAsync(query, new { user.Name, user.Email, user.Password, user.Role, user.CreatedAt });
+            var result = await _localDbConnection.ExecuteAsync(query, new { user.Name, user.Email, user.Password, Role = user.Role.ToString(), user.CreatedAt });
 
             return result > 0 ? result : throw new Exception("Error al insertar el usuario.");
         }
@@ -54,7 +54,7 @@ namespace DAMProject.Server.Repositories
                 updatedUser.Name,
                 updatedUser.Email,
                 updatedUser.Password,
-                updatedUser.Role,
+                Role = updatedUser.Role.ToString(),
                 updatedUser.Id
             });
 

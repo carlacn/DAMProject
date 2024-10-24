@@ -14,7 +14,7 @@ namespace DAMProject.Server.Configuration
                 .AddScoped<IPublisherRepository, PublisherRepository>()
                 .AddScoped<ISeriesRepository, SerieRepository>()
                 .AddScoped<IFavoritesRepository, FavoritesRepository>()
-                .AddScoped<IRatingRepository, RatingRepository>();
+                .AddScoped<IScoreRepository, ScoreRepository>();
 
             return builder;
         }

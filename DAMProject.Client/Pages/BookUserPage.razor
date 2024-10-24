@@ -1,0 +1,90 @@
+﻿@page "/user-books"
+@using DAMProject.Shared.Models
+@inject HttpClient Http
+
+<Layout>
+    <LayoutContent>
+        <div class="container">
+            <div class="row mt-3">
+                @if (books != null)
+                {
+                    @foreach (var book in books)
+                    {
+                        <div class="col-12 mb-3">
+                            <Card>
+                                <CardImage Src="@book.Image" Alt="Book Image" />
+                                <CardBody>
+                                    <CardTitle>@book.Title</CardTitle>
+                                    <Button Color="Color.Primary" Margin="Margin.Is2.FromTop" Clicked="@(() => ShowBookDetails(book.Id))">
+                                        <Icon Name="IconName.Eye" />
+                                    </Button>
+                                </CardBody>
+                            </Card>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p>Loading books...</p>
+                }
+            </div>
+        </div>
+    </LayoutContent>
+</Layout>
+
+@if (showModal && selectedBook != null)
+{
+    <Modal Visible="true" Toggled="@CloseModal">
+        <ModalContent Centered>
+            <ModalBody>
+                <Card>
+                    <CardImage Src="@selectedBook.Image" Alt="Book Image" />
+                    <CardBody>
+                        <CardTitle>@selectedBook.Title</CardTitle>
+                        <CardText>Genre ID: @selectedBook.GenreId</CardText>
+                        <CardText>Comments: @selectedBook.Comments</CardText>
+                        <CardText>Published By: @selectedBook.PublisherId</CardText>
+                        <CardText>Series: @selectedBook.SeriesId</CardText>
+                    </CardBody>
+                </Card>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Warning">
+                    <Icon Name="IconName.Star" Color="Color.White"/>
+                </Button>
+                <Button Color="Color.Danger">
+                    <Icon Name="IconName.Heart" Color="Color.White"/>
+                </Button>
+                <Button Color="Color.Primary" Clicked="CloseModal">
+                    <Icon Name="IconName.Times" Color="Color.White"/>
+                </Button>
+            </ModalFooter>
+        </ModalContent>
+    </Modal>
+}
+
+@code {
+    private List<Book>? books;
+    private Book? selectedBook;
+    private bool showModal = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        books = await Http.GetFromJsonAsync<List<Book>>("api/book");
+    }
+
+    private async Task ShowBookDetails(int bookId)
+    {
+        selectedBook = await Http.GetFromJsonAsync<Book>($"api/book/{bookId}");
+        if (selectedBook != null)
+        {
+            showModal = true;
+        }
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        selectedBook = null;
+    }
+}

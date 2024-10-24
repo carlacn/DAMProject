@@ -8,7 +8,7 @@ namespace DAMProject.Server.Controllers
     //[Authorize(Policy = "AdminPolicy")]
     [ApiController]
     [Route("api/[controller]")]
-    public class SeriesController(ISeriesService seriesService) : ControllerBase
+    public class SerieController(ISeriesService seriesService) : ControllerBase
     {
         private readonly ISeriesService _seriesService = seriesService;
 
@@ -34,7 +34,7 @@ namespace DAMProject.Server.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateSeries(int id, Serie series)
+        public async Task<IActionResult> UpdateSeries(int id, [FromBody] Serie series)
         {
             if (id != series.Id) return BadRequest();
             await _seriesService.UpdateSeries(series);

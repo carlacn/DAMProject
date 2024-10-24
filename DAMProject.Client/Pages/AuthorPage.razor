@@ -1,0 +1,80 @@
+﻿@page "/authors"
+@using DAMProject.Shared.Models
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<PageTitle>Authors</PageTitle>
+
+<DataGrid TItem="Author"
+          Data="@authors"
+          @bind-SelectedRow="@selectedAuthor"
+          Editable
+          Responsive
+          ShowPager
+          CommandMode="DataGridCommandMode.ButtonRow"
+          EditMode="DataGridEditMode.Popup"
+          RowUpdated="RowUpdated"
+          RowRemoved="RowRemoved"
+          RowInserted="RowInserted">
+    <DataGridColumns>
+        <DataGridCommandColumn NewCommandAllowed="true" EditCommandAllowed="true" DeleteCommandAllowed="true" CancelCommandAllowed="true">
+            <SaveCommandTemplate>
+                <Button ElementId="btnSave" Type="ButtonType.Submit" PreventDefaultOnSubmit Color="Color.Primary" Clicked="@context.Clicked">@context.LocalizationString</Button>
+            </SaveCommandTemplate>
+            <CancelCommandTemplate>
+                <Button ElementId="btnCancel" Color="Color.Secondary" Clicked="@context.Clicked">@context.LocalizationString</Button>
+            </CancelCommandTemplate>
+        </DataGridCommandColumn>
+        <DataGridColumn TItem="Author" Field="Id" Caption="Id" Editable="false" />
+        <DataGridColumn TItem="Author" Field="Name" Caption="Name" Editable="true" />
+        <DataGridColumn TItem="Author" Field="Biography" Caption="Biography" Editable="true" />
+        <DataGridColumn TItem="Author" Field="Image" Caption="Image" Editable="true" />
+    </DataGridColumns>
+
+    <ButtonRowTemplate>
+        <Button Color="Color.Success" Clicked="context.NewCommand.Clicked">New</Button>
+        <Button Color="Color.Primary" Disabled="(selectedAuthor is null)" Clicked="context.EditCommand.Clicked">Edit</Button>
+        <Button Color="Color.Danger" Disabled="(selectedAuthor is null)" Clicked="context.DeleteCommand.Clicked">Delete</Button>
+        <Button Color="Color.Link" Clicked="context.ClearFilterCommand.Clicked">Clear Filter</Button>
+    </ButtonRowTemplate>
+</DataGrid>
+
+@code {
+    private List<Author>? authors;
+    private Author selectedAuthor;
+
+    protected override async Task OnInitializedAsync()
+    {
+        authors = await Http.GetFromJsonAsync<List<Author>>("api/author");
+    }
+
+    private async Task RowInserted(SavedRowItem<Author, Dictionary<string, object>> e)
+    {
+        var newAuthor = e.Item;
+        var response = await Http.PostAsJsonAsync("api/author", newAuthor);
+
+        if (response.IsSuccessStatusCode)
+        {
+            NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+        }
+    }
+
+    private async Task RowUpdated(SavedRowItem<Author, Dictionary<string, object>> e)
+    {
+        var author = e.Item;
+        var response = await Http.PutAsJsonAsync($"api/author/{author.Id}", author);
+        if (!response.IsSuccessStatusCode)
+        {
+            NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+        }
+    }
+
+    private async Task RowRemoved(Author author)
+    {
+        var response = await Http.DeleteAsync($"api/author/{author.Id}");
+        if (response.IsSuccessStatusCode)
+        {
+            authors.Remove(author);
+        }
+    }
+}

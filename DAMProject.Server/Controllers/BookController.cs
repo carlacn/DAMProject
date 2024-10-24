@@ -28,14 +28,14 @@ namespace DAMProject.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateBook(Book book)
+        public async Task<IActionResult> CreateBook([FromBody] Book book)
         {
             await _bookService.CreateBook(book);
             return Created();
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateBook(int id, Book book)
+        public async Task<IActionResult> UpdateBook(int id, [FromBody] Book book)
         {
             if (id != book.Id) return BadRequest();
             await _bookService.UpdateBook(book);

@@ -1,0 +1,112 @@
+﻿@page "/favorites"
+@using DAMProject.Shared.Models
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<PageTitle>Favorites</PageTitle>
+
+<DataGrid TItem="Favorites"
+          Data="@favoritesList"
+          @bind-SelectedRow="@selectedFavorite"
+          Editable
+          Responsive
+          ShowPager
+          CommandMode="DataGridCommandMode.ButtonRow"
+          EditMode="DataGridEditMode.Popup"
+          RowUpdated="RowUpdated"
+          RowRemoved="RowRemoved"
+          RowInserted="RowInserted">
+    <DataGridColumns>
+        <DataGridCommandColumn NewCommandAllowed="true" EditCommandAllowed="true" DeleteCommandAllowed="true" CancelCommandAllowed="true">
+            <SaveCommandTemplate>
+                <Button ElementId="btnSave" Type="ButtonType.Submit" PreventDefaultOnSubmit Color="Color.Primary" Clicked="@context.Clicked">@context.LocalizationString</Button>
+            </SaveCommandTemplate>
+            <CancelCommandTemplate>
+                <Button ElementId="btnCancel" Color="Color.Secondary" Clicked="@context.Clicked">@context.LocalizationString</Button>
+            </CancelCommandTemplate>
+        </DataGridCommandColumn>
+
+        <DataGridColumn TItem="Favorites" Field="Id" Caption="Id" Editable="false" />
+        <DataGridColumn TItem="Favorites" Field="UserId" Caption="User Id" Editable="true" />
+        <DataGridColumn TItem="Favorites" Field="BookId" Caption="Book Id" Editable="true" />
+        <DataGridColumn TItem="Favorites" Field="Format" Caption="Format" Editable="true">
+            <EditTemplate>
+                <Select TValue="int" SelectedValue="@((int)context.CellValue)" 
+                SelectedValueChanged="@(v=>context.CellValue=v)">
+                    <SelectItem Value="0">Digital</SelectItem>
+                    <SelectItem Value="1">Physical</SelectItem>
+                </Select>
+            </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn TItem="Favorites" Field="Status" Caption="Status" Editable="true" >
+            <EditTemplate>
+                <Select TValue="int" SelectedValue="@((int)context.CellValue)"
+                        SelectedValueChanged="@(v=>context.CellValue=v)">
+                    <SelectItem Value="0">Pending</SelectItem>
+                    <SelectItem Value="1">Read</SelectItem>
+                    <SelectItem Value="2">Current Read</SelectItem>
+                    <SelectItem Value="3">Abandoned</SelectItem>
+                </Select>
+            </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn TItem="Favorites" Field="ReadDate" Caption="Read Date" Editable="true">
+            <DisplayTemplate>
+                @{
+                    var date = (context as Favorites)?.ReadDate;
+
+                    if (date != null)
+                    {
+                        @($"{date.Value.ToShortDateString()}")
+                    }
+                }
+            </DisplayTemplate>
+        </DataGridColumn> 
+    </DataGridColumns>
+
+    <ButtonRowTemplate>
+        <Button Color="Color.Success" Clicked="context.NewCommand.Clicked">New</Button>
+        <Button Color="Color.Primary" Disabled="(selectedFavorite is null)" Clicked="context.EditCommand.Clicked">Edit</Button>
+        <Button Color="Color.Danger" Disabled="(selectedFavorite is null)" Clicked="context.DeleteCommand.Clicked">Delete</Button>
+        <Button Color="Color.Link" Clicked="context.ClearFilterCommand.Clicked">Clear Filter</Button>
+    </ButtonRowTemplate>
+</DataGrid>
+
+@code {
+    private List<Favorites>? favoritesList;
+    private Favorites selectedFavorite;
+
+    protected override async Task OnInitializedAsync()
+    {
+        favoritesList = await Http.GetFromJsonAsync<List<Favorites>>("api/favorites");
+    }
+
+    private async Task RowInserted(SavedRowItem<Favorites, Dictionary<string, object>> e)
+    {
+        var newFavorite = e.Item;
+        var response = await Http.PostAsJsonAsync("api/favorites", newFavorite);
+
+        if (response.IsSuccessStatusCode)
+        {
+            NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+        }
+    }
+
+    private async Task RowUpdated(SavedRowItem<Favorites, Dictionary<string, object>> e)
+    {
+        var favorite = e.Item;
+        var response = await Http.PutAsJsonAsync($"api/favorites/{favorite.Id}", favorite);
+        if (!response.IsSuccessStatusCode)
+        {
+            NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+        }
+    }
+
+    private async Task RowRemoved(Favorites favorite)
+    {
+        var response = await Http.DeleteAsync($"api/favorites/{favorite.Id}");
+        if (response.IsSuccessStatusCode)
+        {
+            favoritesList.Remove(favorite);
+        }
+    }
+}

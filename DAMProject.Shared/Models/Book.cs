@@ -13,11 +13,8 @@ namespace DAMProject.Shared.Models
         public int GenreId { get; set; }
         public int PublisherId { get; set; }
         public int? SeriesId { get; set; }
-        public DateTime? ReadDate { get; set; }
-        public string? Status { get; set; }
-        public double? AverageRating { get; set; }
         public string? Comments { get; set; }
         public int UserId { get; set; }
-        public string? Format { get; set; }
+        public string? Image { get; set; }
     }
 }

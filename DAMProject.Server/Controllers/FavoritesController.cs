@@ -27,14 +27,14 @@ namespace DAMProject.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateFavorite(Favorites favorite)
+        public async Task<IActionResult> CreateFavorite([FromBody] Favorites favorite)
         {
             await _favoritesService.CreateFavorite(favorite);
             return Created();
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateFavorite(int id, Favorites favorite)
+        public async Task<IActionResult> UpdateFavorite(int id, [FromBody] Favorites favorite)
         {
             if (id != favorite.Id) return BadRequest();
             await _favoritesService.UpdateFavorite(favorite);

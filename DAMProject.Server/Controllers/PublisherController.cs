@@ -26,14 +26,14 @@ namespace DAMProject.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreatePublisher(Publisher publisher)
+        public async Task<IActionResult> CreatePublisher([FromBody] Publisher publisher)
         {
             await _publisherService.CreatePublisher(publisher);
             return Created();
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdatePublisher(int id, Publisher publisher)
+        public async Task<IActionResult> UpdatePublisher(int id, [FromBody] Publisher publisher)
         {
             if (id != publisher.Id) return BadRequest();
             await _publisherService.UpdatePublisher(publisher);
