@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DAMProject.Shared.Request
+﻿namespace DAMProject.Shared.Request
 {
     public class LoginRequest
     {

@@ -49,10 +49,10 @@
                 </Card>
             </ModalBody>
             <ModalFooter>
-                <Button Color="Color.Warning">
+                <Button Color="Color.Warning" Clicked="@(() => ShowScoresModal())">
                     <Icon Name="IconName.Star" Color="Color.White"/>
                 </Button>
-                <Button Color="Color.Danger">
+                <Button Color="Color.Danger" Clicked="@(() => ShowFavoritesModal())">
                     <Icon Name="IconName.Heart" Color="Color.White"/>
                 </Button>
                 <Button Color="Color.Primary" Clicked="CloseModal">
@@ -63,10 +63,99 @@
     </Modal>
 }
 
+@if (showFavoritesModal)
+{
+    <Modal Visible="true" Toggled="@CloseFavoritesModal">
+        <ModalContent Centered>
+            <ModalBody>
+                <h4>Agregar a Favoritos</h4>
+                <div class="form-group mb-3">
+                    <label>Format:</label>
+                    <Select @bind-Value="favoriteFormat" TValue="Format" Class="form-select">
+                        @foreach (var format in Enum.GetValues<Format>())
+                        {
+                            <SelectItem Value="@(format)">@format</SelectItem>
+                        }
+                    </Select>
+                </div>
+                <div class="form-group mb-3">
+                    <label>Status:</label>
+                    <Select @bind-Value="favoriteStatus" TValue="Status" Class="form-select">
+                        @foreach (var status in Enum.GetValues<Status>())
+                        {
+                            <SelectItem Value="@(status)">@status</SelectItem>
+                        }
+                    </Select>
+                </div>
+                <div class="form-group mb-3">
+                    <label>Read Date:</label>
+                    <DateEdit @bind-Date="favoriteReadDate" Class="form-control" />
+                </div>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Primary">
+                    Guardar
+                </Button>
+                <Button Color="Color.Secondary" Clicked="@CloseFavoritesModal">
+                    Cancelar
+                </Button>
+            </ModalFooter>
+        </ModalContent>
+    </Modal>
+}
+
+@if (showScoresModal)
+{
+    <Modal Visible="true" Toggled="@CloseScoresModal">
+        <ModalContent Centered>
+            <ModalBody>
+                <h4>Agregar Puntuación</h4>
+
+                <!-- Sistema de Puntuación -->
+                <div class="form-group mb-3">
+                    <label>Puntuación:</label>
+                    <div>
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            <Button Color="@(i <= userScore ? Color.Warning : Color.Light)" Class="me-1">
+                                <Icon Name="IconName.Star" />
+                            </Button>
+                        }
+                    </div>
+                </div>
+
+                <!-- Cuadro de Texto para Comentarios -->
+                <div class="form-group mb-3">
+                    <label>Comentario:</label>
+                    <InputTextArea @bind-Value="userComment" Class="form-control" Rows="3" Placeholder="Añade tu comentario aquí..." />
+                </div>
+            </ModalBody>
+            <ModalFooter>
+                <Button Color="Color.Primary">
+                    Guardar
+                </Button>
+                <Button Color="Color.Secondary" Clicked="@CloseScoresModal">
+                    Cancelar
+                </Button>
+            </ModalFooter>
+        </ModalContent>
+    </Modal>
+}
+
+
 @code {
     private List<Book>? books;
     private Book? selectedBook;
     private bool showModal = false;
+    private bool showFavoritesModal = false;
+    private bool showScoresModal = false;
+
+    private Format favoriteFormat = Format.Digital;
+    private Status favoriteStatus = Status.Pending;
+    private DateTime favoriteReadDate = DateTime.Today;
+
+    private int userScore = 0;  
+    private string userComment = ""; 
 
     protected override async Task OnInitializedAsync()
     {
@@ -86,5 +175,24 @@
     {
         showModal = false;
         selectedBook = null;
+    }
+
+    private void ShowFavoritesModal()
+    {
+        showFavoritesModal = true;
+    }
+
+    private void CloseFavoritesModal()
+    {
+        showFavoritesModal = false;
+    }
+    private void ShowScoresModal()
+    {
+        showScoresModal = true;
+    }
+
+    private void CloseScoresModal()
+    {
+        showScoresModal = false;
     }
 }

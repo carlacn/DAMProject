@@ -1,60 +1,100 @@
-﻿ <Bar Mode="BarMode.VerticalInline"
-      CollapseMode="BarCollapseMode.Small"
-      Breakpoint="Breakpoint.Desktop"
-      NavigationBreakpoint="Breakpoint.Tablet"
-      ThemeContrast="ThemeContrast.Dark">
-    <BarToggler/>
-    <BarBrand>
-        <BarItem>
-            <BarLink To="">
-                <BarIcon IconName="IconName.Dashboard"/>
-                DAMproject
-            </BarLink>
-        </BarItem>
-    </BarBrand>
-    <BarMenu>
-        <BarStart>
-            <BarItem>
-                <BarLink To="users">
-                    <BarIcon IconName="IconName.UserFriends" /> Users
-                </BarLink>
-            </BarItem>
-            <BarItem>
-                <BarLink To="books">
-                    <BarIcon IconName="IconName.Book" /> Books
-                </BarLink>
-            </BarItem>
-            <BarItem>
-                <BarLink To="authors">
-                    <BarIcon IconName="IconName.UserTie" /> Authors
-                </BarLink>
-            </BarItem>
-            <BarItem>
-                <BarLink To="genres">
-                    <BarIcon IconName="IconName.Tag" /> Genres
-                </BarLink>
-            </BarItem>
-            <BarItem>
-                <BarLink To="series">
-                    <BarIcon IconName="IconName.LayerGroup" /> Series
-                </BarLink>
-            </BarItem>
-            <BarItem>
-                <BarLink To="publishers">
-                    <BarIcon IconName="IconName.Building" /> Publishers
-                </BarLink>
-            </BarItem>
-            <BarItem>
-                <BarLink To="favorites">
-                    <BarIcon IconName="IconName.Heart" /> Favorites
-                </BarLink>
-            </BarItem>
-            <BarItem>
-                <BarLink To="score">
-                    <BarIcon IconName="IconName.Star" /> Score
-                </BarLink>
-            </BarItem>
-        </BarStart>
-    </BarMenu>
+﻿@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+
+ <Bar Mode="BarMode.VerticalInline"
+	  CollapseMode="BarCollapseMode.Small"
+	  Breakpoint="Breakpoint.Desktop"
+	  NavigationBreakpoint="Breakpoint.Tablet"
+	  ThemeContrast="ThemeContrast.Dark">
+	<BarToggler/>
+	<BarBrand>
+		<BarItem>
+			<BarLink To="home">
+				<BarIcon IconName="IconName.Dashboard"/>
+				DAMproject
+			</BarLink>
+		</BarItem>
+	</BarBrand>
+	<BarMenu>
+		<BarStart>
+			@if (authenticationStatus.IsAuthenticated)
+			{
+				@if (authenticationStatus.Role == "Admin")
+				{
+					<BarItem>
+						<BarLink To="users">
+							<BarIcon IconName="IconName.UserFriends" /> Users
+						</BarLink>
+					</BarItem>
+					<BarItem>
+						<BarLink To="books">
+							<BarIcon IconName="IconName.Book" /> Books
+						</BarLink>
+					</BarItem>
+					<BarItem>
+						<BarLink To="authors">
+							<BarIcon IconName="IconName.UserTie" /> Authors
+						</BarLink>
+					</BarItem>
+					<BarItem>
+						<BarLink To="genres">
+							<BarIcon IconName="IconName.Tag" /> Genres
+						</BarLink>
+					</BarItem>
+					<BarItem>
+						<BarLink To="series">
+							<BarIcon IconName="IconName.LayerGroup" /> Series
+						</BarLink>
+					</BarItem>
+					<BarItem>
+						<BarLink To="publishers">
+							<BarIcon IconName="IconName.Building" /> Publishers
+						</BarLink>
+					</BarItem>
+					<BarItem>
+						<BarLink To="favorites">
+							<BarIcon IconName="IconName.Heart" /> Favorites
+						</BarLink>
+					</BarItem>
+					<BarItem>
+						<BarLink To="score">
+							<BarIcon IconName="IconName.Star" /> Score
+						</BarLink>
+					</BarItem>
+				}
+
+				@if (authenticationStatus.Role == "User")
+				{
+					<BarItem>
+						<BarLink To="user-books">
+							<BarIcon IconName="IconName.BookReader" /> User Books
+						</BarLink>
+					</BarItem>
+				}
+			}
+		</BarStart>
+		<BarEnd>
+		</BarEnd>
+	</BarMenu>
  </Bar>
-    
+
+@code {
+	private AuthenticationStatus authenticationStatus = new AuthenticationStatus { IsAuthenticated = false };
+
+	protected override async Task OnInitializedAsync()
+	{
+		authenticationStatus = await AuthService.GetAuthenticationStatus();
+		NavigationManager.LocationChanged += OnLocationChanged;
+	}
+
+	private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+	{
+		authenticationStatus = await AuthService.GetAuthenticationStatus();
+		StateHasChanged();
+	}
+
+	public void Dispose()
+	{
+		NavigationManager.LocationChanged -= OnLocationChanged; 
+	}
+}

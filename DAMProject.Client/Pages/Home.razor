@@ -1,7 +1,15 @@
-﻿@page "/"
+﻿@page "/home"
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<Container Display="Display.Flex"
+           Flex="Flex.Column.AlignItems.Center.JustifyContent.Center"
+           Height="Height.Is100">
+    <Heading Size="HeadingSize.Is1">Bienvenido</Heading>
+    <Paragraph>Estas correctamente logeado.</Paragraph>
+</Container>
 
-Welcome to your new app.
+
+@code {
+
+}
