@@ -1,13 +1,12 @@
-﻿@page "/books"
+﻿ @page "/books"
 @using DAMProject.Shared.Models
 @inject HttpClient Http
 @inject NavigationManager NavigationManager
 
-
 <PageTitle>Books</PageTitle>
 
 <DataGrid TItem="Book"
-          Data="@books"
+          Data="@bookList"
           @bind-SelectedRow="@selectedBook"
           Editable
           Responsive
@@ -26,24 +25,65 @@
                 <Button ElementId="btnCancel" Color="Color.Secondary" Clicked="@context.Clicked">@context.LocalizationString</Button>
             </CancelCommandTemplate>
         </DataGridCommandColumn>
-        <DataGridColumn TItem="Book" Field="Id" Caption="Id" Editable="false"/>
-        <DataGridColumn TItem="Book" Field="Title" Caption="Title" Editable/>
-        <DataGridColumn TItem="Book" Field="GenreId" Caption="Genre" Editable/>
-        <DataGridColumn TItem="Book" Field="PublisherId" Caption="Publisher" Editable/>
-        <DataGridColumn TItem="Book" Field="SeriesId" Caption="Series" Editable/>
-        <DataGridColumn TItem="Book" Field="Comments" Caption="Comments" Editable/>
-        <DataGridColumn TItem="Book" Field="UserId" Caption="User" Editable/>
+
+        <DataGridColumn TItem="Book" Field="Id" Caption="Id" Editable="false" />
+        <DataGridColumn TItem="Book" Field="Title" Caption="Title" Editable="true" />
+        <DataGridColumn TItem="Book"  Field="GenreId" Caption="Genre" Editable="true">
+            <DisplayTemplate Context="Book">
+                @genres.FirstOrDefault(g => g.Id == Book.GenreId)?.Name
+            </DisplayTemplate>
+            <EditTemplate Context="context">
+                <Select TValue="int" SelectedValue="@((int)context.CellValue)"
+                        SelectedValueChanged="@((int value) => context.CellValue = value)">
+                    @foreach (var genre in genres)
+                    {
+                        <SelectItem Value="@genre.Id">@genre.Name</SelectItem>
+                    }
+                </Select>
+            </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn TItem="Book" Field="PublisherId" Caption="Publisher" Editable="true">
+            <DisplayTemplate Context="Book">
+                @publishers.FirstOrDefault(p => p.Id == Book.PublisherId)?.Name
+            </DisplayTemplate>
+            <EditTemplate Context="context">
+                <Select TValue="int" SelectedValue="@((int)context.CellValue)"
+                        SelectedValueChanged="@((int value) => context.CellValue = value)">
+                    @foreach (var publisher in publishers)
+                    {
+                        <SelectItem Value="@publisher.Id">@publisher.Name</SelectItem>
+                    }
+                </Select>
+            </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn TItem="Book" Field="SeriesId" Caption="Series" Editable="true">
+            <DisplayTemplate Context="Book">
+                @seriesList.FirstOrDefault(s => s.Id == Book.SeriesId)?.Name
+            </DisplayTemplate>
+            <EditTemplate Context="context">
+                <Select TValue="int" SelectedValue="@((int)context.CellValue)"
+                        SelectedValueChanged="@((int value) => context.CellValue = value)">
+                    @foreach (var serie in seriesList)
+                    {
+                        <SelectItem Value="@serie.Id">@serie.Name</SelectItem>
+                    }
+                </Select>
+            </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn TItem="Book" Field="Comments" Caption="Comments" Editable="true" />
+
         <DataGridColumn TItem="Book" Field="Image" Caption="Image" Editable>
             <EditTemplate>
                 <div class="w-100">
                     <FileEdit Changed="@OnChanged" Style="width: 100%;" />
                 </div>
             </EditTemplate>
-            <DisplayTemplate Context="book">
-                <img src="@book.Image" alt="Book Image" width="100" height="100" />
+            <DisplayTemplate Context="Book">
+                <img src="@Book.Image" alt="Book Image" width="100" height="100" />
             </DisplayTemplate>
         </DataGridColumn>
     </DataGridColumns>
+
     <ButtonRowTemplate>
         <Button Color="Color.Success" Clicked="context.NewCommand.Clicked">New</Button>
         <Button Color="Color.Primary" Disabled="(selectedBook is null)" Clicked="context.EditCommand.Clicked">Edit</Button>
@@ -53,12 +93,20 @@
 </DataGrid>
 
 @code {
-    private List<Book>? books;
+    private List<Book>? bookList;
     private Book selectedBook;
+
+    private List<Genre> genres = new();
+    private List<Publisher> publishers = new();
+    private List<Serie> seriesList = new();
 
     protected override async Task OnInitializedAsync()
     {
-        books = await Http.GetFromJsonAsync<List<Book>>("api/book");
+        bookList = await Http.GetFromJsonAsync<List<Book>>("api/book");
+
+        genres = await Http.GetFromJsonAsync<List<Genre>>("api/genre");
+        publishers = await Http.GetFromJsonAsync<List<Publisher>>("api/publisher");
+        seriesList = await Http.GetFromJsonAsync<List<Serie>>("api/Serie");
     }
 
     private async Task RowInserted(SavedRowItem<Book, Dictionary<string, object>> e)
@@ -71,6 +119,7 @@
             NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
         }
     }
+
     private async Task RowUpdated(SavedRowItem<Book, Dictionary<string, object>> e)
     {
         var book = e.Item;
@@ -81,20 +130,17 @@
         }
     }
 
-    private async Task RowRemoved(Book book)
+    private async Task RowRemoved(Book Book)
     {
-        var response = await Http.DeleteAsync($"api/book/{book.Id}");
+        var response = await Http.DeleteAsync($"api/book/{Book.Id}");
         if (response.IsSuccessStatusCode)
         {
-            books.Remove(book);
-        }        
-    }
-    @code {
-        Task OnChanged(FileChangedEventArgs e)
-        {
-            return Task.CompletedTask;
+            bookList.Remove(Book);
         }
     }
 
+    private Task OnChanged(FileChangedEventArgs e)
+    {
+        return Task.CompletedTask;
+    }
 }
-

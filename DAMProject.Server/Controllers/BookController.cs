@@ -1,6 +1,5 @@
 ﻿using DAMProject.Server.Services;
 using DAMProject.Shared.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DAMProject.Server.Controllers
@@ -25,6 +24,13 @@ namespace DAMProject.Server.Controllers
         {
             var book = await _bookService.GetBookById(id);
             return book == null ? NotFound() : Ok(book);
+        }
+
+        [HttpGet("details")]
+        public async Task<IActionResult> GetBookDetails()
+        {
+            var response = await _bookService.GetBookDetails();
+            return Ok(response);
         }
 
         [HttpPost]

@@ -27,19 +27,45 @@
         </DataGridCommandColumn>
 
         <DataGridColumn TItem="Favorites" Field="Id" Caption="Id" Editable="false" />
-        <DataGridColumn TItem="Favorites" Field="UserId" Caption="User Id" Editable="true" />
-        <DataGridColumn TItem="Favorites" Field="BookId" Caption="Book Id" Editable="true" />
+        <DataGridColumn TItem="Favorites" Field="UserId" Caption="User" Editable="true">
+            <DisplayTemplate Context="favorites">
+                @users.FirstOrDefault(user => user.Id == favorites.UserId)?.Name
+            </DisplayTemplate>
+            <EditTemplate Context="context">
+                <Select TValue="int" SelectedValue="@((int)context.CellValue)"
+                        SelectedValueChanged="@((int value) => context.CellValue = value)">
+                    @foreach (var user in users)
+                    {
+                        <SelectItem Value="@user.Id">@user.Name</SelectItem>
+                    }
+                </Select>
+            </EditTemplate>
+        </DataGridColumn>
+        <DataGridColumn TItem="Favorites" Field="BookId" Caption="Book" Editable="true">
+            <DisplayTemplate Context="favorites">
+                @books.FirstOrDefault(book => book.Id == favorites.BookId)?.Title
+            </DisplayTemplate>
+            <EditTemplate Context="context">
+                <Select TValue="int" SelectedValue="@((int)context.CellValue)"
+                        SelectedValueChanged="@((int value) => context.CellValue = value)">
+                    @foreach (var book in books)
+                    {
+                        <SelectItem Value="@book.Id">@book.Title</SelectItem>
+                    }
+                </Select>
+            </EditTemplate>
+        </DataGridColumn>
         <DataGridColumn TItem="Favorites" Field="Format" Caption="Format" Editable="true">
-            <EditTemplate>
-                <Select TValue="int" SelectedValue="@((int)context.CellValue)" 
-                SelectedValueChanged="@(v=>context.CellValue=v)">
+            <EditTemplate Context="context">
+                <Select TValue="int" SelectedValue="@((int)context.CellValue)"
+                        SelectedValueChanged="@(v=>context.CellValue=v)">
                     <SelectItem Value="0">Digital</SelectItem>
                     <SelectItem Value="1">Physical</SelectItem>
                 </Select>
             </EditTemplate>
         </DataGridColumn>
-        <DataGridColumn TItem="Favorites" Field="Status" Caption="Status" Editable="true" >
-            <EditTemplate>
+        <DataGridColumn TItem="Favorites" Field="Status" Caption="Status" Editable="true">
+            <EditTemplate Context="context">
                 <Select TValue="int" SelectedValue="@((int)context.CellValue)"
                         SelectedValueChanged="@(v=>context.CellValue=v)">
                     <SelectItem Value="0">Pending</SelectItem>
@@ -50,9 +76,9 @@
             </EditTemplate>
         </DataGridColumn>
         <DataGridColumn TItem="Favorites" Field="ReadDate" Caption="Read Date" Editable="true">
-            <DisplayTemplate>
+            <DisplayTemplate Context="favorites">
                 @{
-                    var date = (context as Favorites)?.ReadDate;
+                    var date = favorites?.ReadDate;
 
                     if (date != null)
                     {
@@ -60,7 +86,7 @@
                     }
                 }
             </DisplayTemplate>
-        </DataGridColumn> 
+        </DataGridColumn>
     </DataGridColumns>
 
     <ButtonRowTemplate>
@@ -72,15 +98,21 @@
 </DataGrid>
 
 @code {
-    private List<Favorites>? favoritesList;
-    private Favorites selectedFavorite;
+    private List<Favorites>? favoritesList; 
+    private Favorites selectedFavorite; 
+
+    private List<User> users = new();
+    private List<Book> books = new();
 
     protected override async Task OnInitializedAsync()
     {
-        favoritesList = await Http.GetFromJsonAsync<List<Favorites>>("api/favorites");
+        favoritesList = await Http.GetFromJsonAsync<List<Favorites>>("api/favorites"); 
+
+        users = await Http.GetFromJsonAsync<List<User>>("api/user");
+        books = await Http.GetFromJsonAsync<List<Book>>("api/book");
     }
 
-    private async Task RowInserted(SavedRowItem<Favorites, Dictionary<string, object>> e)
+    private async Task RowInserted(SavedRowItem<Favorites, Dictionary<string, object>> e) 
     {
         var newFavorite = e.Item;
         var response = await Http.PostAsJsonAsync("api/favorites", newFavorite);
@@ -91,7 +123,7 @@
         }
     }
 
-    private async Task RowUpdated(SavedRowItem<Favorites, Dictionary<string, object>> e)
+    private async Task RowUpdated(SavedRowItem<Favorites, Dictionary<string, object>> e) 
     {
         var favorite = e.Item;
         var response = await Http.PutAsJsonAsync($"api/favorites/{favorite.Id}", favorite);
@@ -101,7 +133,7 @@
         }
     }
 
-    private async Task RowRemoved(Favorites favorite)
+    private async Task RowRemoved(Favorites favorite) 
     {
         var response = await Http.DeleteAsync($"api/favorites/{favorite.Id}");
         if (response.IsSuccessStatusCode)

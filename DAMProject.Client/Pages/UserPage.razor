@@ -29,7 +29,15 @@
         <DataGridColumn TItem="User" Field="Name" Caption="Name" Editable="true" />
         <DataGridColumn TItem="User" Field="Email" Caption="Email" Editable="true" />
         <DataGridColumn TItem="User" Field="Password" Caption="Password" Editable="true" />
-        <DataGridColumn TItem="User" Field="Role" Caption="Role" Editable="true" />
+        <DataGridColumn TItem="User" Field="Role" Caption="Role" Editable="true" >
+            <EditTemplate>
+                <Select TValue="int" SelectedValue="@((int)context.CellValue)"
+                        SelectedValueChanged="@(v=>context.CellValue=v)">
+                    <SelectItem Value="0">User</SelectItem>
+                    <SelectItem Value="1">Admin</SelectItem>
+                </Select>
+            </EditTemplate>
+        </DataGridColumn>
     </DataGridColumns>
 
     <ButtonRowTemplate>
@@ -56,8 +64,15 @@
         {
             newUser.CreatedAt = DateTime.Now;
         }
+        var registerRequest = new RegisterRequest
+            {
+                Name = newUser.Name,
+                Email = newUser.Email,
+                Password = newUser.Password,
+                Role = newUser.Role
+            };
 
-        var response = await Http.PostAsJsonAsync("api/user", newUser);
+        var response = await Http.PostAsJsonAsync("api/auth/Register", registerRequest);
 
         if (response.IsSuccessStatusCode)
         {

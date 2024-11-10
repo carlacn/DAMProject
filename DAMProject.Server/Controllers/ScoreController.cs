@@ -1,6 +1,5 @@
 ﻿using DAMProject.Server.Services;
 using DAMProject.Shared.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DAMProject.Server.Controllers

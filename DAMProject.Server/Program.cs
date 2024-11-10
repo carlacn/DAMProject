@@ -1,6 +1,5 @@
 using DAMProject.Server.Auth;
 using DAMProject.Server.Configuration;
-using System.Data;
 using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +11,7 @@ builder.Services.AddHttpContextAccessor();
 builder
     .ConfigureDatabase()
     .ConfigureRepositories()
+    .ConfigureQueries()
     .ConfigureServices()
     .ConfigureCustomAuthentication()
     .ConfigurePolicies()

@@ -66,14 +66,24 @@
 				@if (authenticationStatus.Role == "User")
 				{
 					<BarItem>
-						<BarLink To="user-books">
-							<BarIcon IconName="IconName.BookReader" /> User Books
+						<BarLink To="book-details">
+							<BarIcon IconName="IconName.BookReader" /> Book Details
 						</BarLink>
 					</BarItem>
 				}
 			}
 		</BarStart>
 		<BarEnd>
+			<BarItem Alignment="BarAlignment.End">
+				@if (authenticationStatus.IsAuthenticated)
+				{
+					<Div Display="Display.Flex" Flex="Flex.AlignItems.Center.JustifyContent.End">
+					<Button Color="Color.Danger" Clicked="OnLogoutClicked" Class="d-flex align-items-center m-2">
+						<Icon Name="IconName.Lock" /> 
+					</Button>
+					</Div>
+				}
+			</BarItem>
 		</BarEnd>
 	</BarMenu>
  </Bar>
@@ -91,6 +101,12 @@
 	{
 		authenticationStatus = await AuthService.GetAuthenticationStatus();
 		StateHasChanged();
+	}
+
+	private async Task OnLogoutClicked()
+	{
+		await AuthService.Logout();
+		NavigationManager.NavigateTo("login", true);
 	}
 
 	public void Dispose()

@@ -19,7 +19,14 @@ namespace DAMProject.Server.Repositories
 
         public async Task<IEnumerable<Score>> GetScore()
         {
-            var query = "SELECT id, user_id AS UserID, book_id AS BookId, user_rating AS UserRating, comment FROM score";
+            var query = @"
+                SELECT 
+                    id, 
+                    user_id AS UserId, 
+                    book_id AS BookId, 
+                    user_rating AS UserRating, 
+                    comment 
+                FROM score s";
             return await _localDbConnection.QueryAsync<Score>(query);
         }
 

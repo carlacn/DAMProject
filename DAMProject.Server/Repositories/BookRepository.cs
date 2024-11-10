@@ -1,7 +1,6 @@
 ﻿using DAMProject.Shared.Models;
 using Dapper;
 using System.Data;
-using System.Data.SqlClient;
 
 namespace DAMProject.Server.Repositories
 {
@@ -9,7 +8,7 @@ namespace DAMProject.Server.Repositories
     {
         Task<IEnumerable<Book>> GetBooks();
         Task<Book> GetBookById(int id);
-        Task<int> CreateBook(Book book);
+		Task<int> CreateBook(Book book);
         Task<int> UpdateBook(Book book);
         Task DeleteBook(int id);
     }
@@ -34,8 +33,13 @@ namespace DAMProject.Server.Repositories
             return await _localDbConnection.QuerySingleOrDefaultAsync<Book>(query, new { Id = id });
         }
 
-        public async Task<int> CreateBook(Book book)
+		public async Task<int> CreateBook(Book book)
         {
+            //TODO pasar a bbdd.
+            if (book.SeriesId == 0)
+            {
+                book.SeriesId = 1;
+            }
             var query = @"INSERT INTO books (title, genre_id, publisher_id, series_id, comments, user_id, image)
                   VALUES (@Title, @GenreId, @PublisherId, @SeriesId, @Comments, @UserId, @Image)";
             var result = await _localDbConnection.ExecuteAsync(query, book);

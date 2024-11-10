@@ -6,6 +6,7 @@ namespace DAMProject.Client.Auth
     public interface IAuthService
     {
         Task<AuthenticationStatus> GetAuthenticationStatus();
+        Task Logout();
     }
 
     public class AuthService(HttpClient httpClient) : IAuthService
@@ -21,6 +22,11 @@ namespace DAMProject.Client.Auth
             }
 
             return new AuthenticationStatus { IsAuthenticated = false };
+        }
+        public async Task Logout() 
+        {
+            await _httpClient.PostAsync("api/auth/logout", null);
+            _httpClient.DefaultRequestHeaders.Authorization = null;
         }
     }
 }

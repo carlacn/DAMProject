@@ -26,8 +26,34 @@
             </CancelCommandTemplate>
         </DataGridCommandColumn>
         <DataGridColumn TItem="Score" Field="Id" Caption="Id" Editable="false" />
-        <DataGridColumn TItem="Score" Field="UserId" Caption="User Id" Editable="true" />
-        <DataGridColumn TItem="Score" Field="BookId" Caption="Book Id" Editable="true" />
+        <DataGridColumn TItem="Score" Field="UserId" Caption="User" Editable="true">
+            <DisplayTemplate Context="score">
+                @users.FirstOrDefault(user => user.Id == score.UserId)?.Name
+            </DisplayTemplate>
+            <EditTemplate Context="context">
+                <Select TValue="int" SelectedValue="@((int)context.CellValue)"
+                        SelectedValueChanged="@((int value) => context.CellValue = value)">
+                    @foreach (var user in users)
+                    {
+                        <SelectItem Value="@user.Id">@user.Name</SelectItem>
+                    }
+                </Select>
+            </EditTemplate>
+        </DataGridColumn>        
+        <DataGridColumn TItem="Score" Field="BookId" Caption="Book" Editable="true">
+            <DisplayTemplate Context="score">
+                @books.FirstOrDefault(book => book.Id == score.BookId)?.Title
+            </DisplayTemplate>
+            <EditTemplate Context="context">
+                <Select TValue="int" SelectedValue="@((int)context.CellValue)"
+                        SelectedValueChanged="@((int value) => context.CellValue = value)">
+                    @foreach (var book in books)
+                    {
+                        <SelectItem Value="@book.Id">@book.Title</SelectItem>
+                    }
+                </Select>
+            </EditTemplate>
+        </DataGridColumn>
         <DataGridColumn TItem="Score" Field="UserRating" Caption="Score" Editable="true" />
         <DataGridColumn TItem="Score" Field="Comment" Caption="Comment" Editable="true" />
     </DataGridColumns>
@@ -44,9 +70,16 @@
     private List<Score>? scoresList;
     private Score selectedScore;
 
+    private List<User> users = new();
+    private List<Book> books = new();
+
     protected override async Task OnInitializedAsync()
     {
         scoresList = await Http.GetFromJsonAsync<List<Score>>("api/score");
+
+        users = await Http.GetFromJsonAsync<List<User>>("api/user");
+        books = await Http.GetFromJsonAsync<List<Book>>("api/book");
+    
     }
 
     private async Task RowInserted(SavedRowItem<Score, Dictionary<string, object>> e)

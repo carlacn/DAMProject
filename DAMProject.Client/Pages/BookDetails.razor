@@ -1,14 +1,27 @@
-﻿@page "/user-books"
+﻿@page "/book-details"
 @using DAMProject.Shared.Models
 @inject HttpClient Http
 
 <Layout>
     <LayoutContent>
+        <div class="d-flex justify-content-center my-3">
+            <Bar Background="Background.White" ThemeContrast="ThemeContrast.Light">
+                <BarStart>
+                    <BarItem>
+                        <TextEdit Placeholder="Search by title..."
+                                  Immediate="true" 
+                                  Icon="IconName.Search" 
+                                  TextChanged="@((text) => FilterBooks(text))" />
+                    </BarItem>
+                </BarStart>
+            </Bar>
+        </div>
+
         <div class="container">
             <div class="row mt-3">
-                @if (books != null)
+                @if (filteredBooks != null && filteredBooks.Any())
                 {
-                    @foreach (var book in books)
+                    @foreach (var book in filteredBooks)
                     {
                         <div class="col-12 mb-3">
                             <Card>
@@ -25,7 +38,7 @@
                 }
                 else
                 {
-                    <p>Loading books...</p>
+                    <p>No books were found.</p>
                 }
             </div>
         </div>
@@ -41,10 +54,10 @@
                     <CardImage Src="@selectedBook.Image" Alt="Book Image" />
                     <CardBody>
                         <CardTitle>@selectedBook.Title</CardTitle>
-                        <CardText>Genre ID: @selectedBook.GenreId</CardText>
+                        <CardText>Genre: @selectedBook.Genre</CardText>
                         <CardText>Comments: @selectedBook.Comments</CardText>
-                        <CardText>Published By: @selectedBook.PublisherId</CardText>
-                        <CardText>Series: @selectedBook.SeriesId</CardText>
+                        <CardText>Publisher: @selectedBook.Publisher</CardText>
+                        <CardText>Saga: @selectedBook.Series</CardText>
                     </CardBody>
                 </Card>
             </ModalBody>
@@ -110,21 +123,17 @@
         <ModalContent Centered>
             <ModalBody>
                 <h4>Agregar Puntuación</h4>
-
-                <!-- Sistema de Puntuación -->
                 <div class="form-group mb-3">
                     <label>Puntuación:</label>
                     <div>
                         @for (int i = 1; i <= 5; i++)
                         {
                             <Button Color="@(i <= userScore ? Color.Warning : Color.Light)" Class="me-1">
-                                <Icon Name="IconName.Star" />
+                                <Icon Name="IconName.Star" /> @i
                             </Button>
                         }
                     </div>
                 </div>
-
-                <!-- Cuadro de Texto para Comentarios -->
                 <div class="form-group mb-3">
                     <label>Comentario:</label>
                     <InputTextArea @bind-Value="userComment" Class="form-control" Rows="3" Placeholder="Añade tu comentario aquí..." />
@@ -144,11 +153,14 @@
 
 
 @code {
-    private List<Book>? books;
-    private Book? selectedBook;
+    private List<BookDetailsDTO>? books;
+    private List<BookDetailsDTO>? filteredBooks;
+    private BookDetailsDTO? selectedBook;
     private bool showModal = false;
     private bool showFavoritesModal = false;
     private bool showScoresModal = false;
+
+    private string searchTerm = "";
 
     private Format favoriteFormat = Format.Digital;
     private Status favoriteStatus = Status.Pending;
@@ -159,12 +171,13 @@
 
     protected override async Task OnInitializedAsync()
     {
-        books = await Http.GetFromJsonAsync<List<Book>>("api/book");
+        books = await Http.GetFromJsonAsync<List<BookDetailsDTO>>("api/book/details");
+        filteredBooks = books;
     }
 
     private async Task ShowBookDetails(int bookId)
     {
-        selectedBook = await Http.GetFromJsonAsync<Book>($"api/book/{bookId}");
+        selectedBook = books.Where(book => book.Id == bookId).FirstOrDefault();
         if (selectedBook != null)
         {
             showModal = true;
@@ -195,4 +208,13 @@
     {
         showScoresModal = false;
     }
+
+    private void FilterBooks(string text)
+    {
+        searchTerm = text;
+        filteredBooks = string.IsNullOrWhiteSpace(searchTerm)
+            ? books
+            : books?.Where(b => b.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+    }
+
 }

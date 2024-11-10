@@ -60,6 +60,13 @@ namespace DAMProject.Server.Controllers
             await _authService.Register(registerRequest);
             return Ok(new { message = "Usuario registrado exitosamente." });
         }
+
+        [HttpPost("logout")]
+        public IActionResult Logout()
+        {
+            _authService.LogOut();
+            return Ok();
+        }
     }
 }
 

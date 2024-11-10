@@ -18,8 +18,15 @@ namespace DAMProject.Server.Repositories
 
         public async Task<IEnumerable<Favorites>> GetFavorites()
         {
-            var query = @"SELECT id, user_id AS UserId, book_id AS BookId, format, status, read_date AS ReadDate 
-                  FROM favorites";
+            var query = @"
+                SELECT 
+                    id, 
+                    user_id AS UserId, 
+                    book_id AS BookId, 
+                    format, 
+                    status, 
+                    read_date AS ReadDate 
+                FROM favorites f";
             return await _localDbConnection.QueryAsync<Favorites>(query);
         }
 
@@ -92,8 +99,8 @@ namespace DAMProject.Server.Repositories
                 Id = currentFavorite.Id,
                 UserId = newFavorite.UserId > 0 ? newFavorite.UserId : currentFavorite.UserId,
                 BookId = newFavorite.BookId > 0 ? newFavorite.BookId : currentFavorite.BookId,
-                Format = !string.IsNullOrEmpty(newFavorite.Format.ToString()) ? newFavorite.Format : currentFavorite.Format,
-                Status = !string.IsNullOrEmpty(newFavorite.Status.ToString()) ? newFavorite.Status : currentFavorite.Status,
+                Format = Favorites.IsFormatValid(newFavorite.Format) ? newFavorite.Format : currentFavorite.Format,
+                Status = Favorites.IsStatusValid(newFavorite.Status) ? newFavorite.Status : currentFavorite.Status,
                 ReadDate = newFavorite.ReadDate != default ? newFavorite.ReadDate : currentFavorite.ReadDate
             };
         }

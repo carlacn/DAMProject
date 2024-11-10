@@ -7,7 +7,6 @@ using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using DAMProject.Shared.Auth;
-using Microsoft.AspNetCore.Http;
 
 namespace DAMProject.Server.Auth
 {
@@ -18,6 +17,7 @@ namespace DAMProject.Server.Auth
         Task<bool> UserExists(string email);
         AuthenticationStatus GetUserAuthenticationStatus();
         Task<string?> RenewToken();
+        void LogOut();
     }
 
     public class AuthService(IDbConnection localConnection, IConfiguration config, IHttpContextAccessor httpContextAccessor) : IAuthService
@@ -153,6 +153,8 @@ namespace DAMProject.Server.Auth
                 return null;
             }
         }
+
+        public void LogOut() => _httpContextAccessor.HttpContext.Session.Remove("JwtToken");        
 
         private string GenerateJwtToken(User user)
         {

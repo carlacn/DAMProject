@@ -1,4 +1,6 @@
-﻿namespace DAMProject.Shared.Models
+﻿using System.Text.Json.Serialization;
+
+namespace DAMProject.Shared.Models
 {
     public class User
     {
@@ -8,8 +10,14 @@
         public required string Password { get; set; }
         public required UserRole Role { get; set; }
         public DateTime CreatedAt { get; set; }
+
+        public static bool IsRoleValid(UserRole role)
+        {
+            return Enum.IsDefined(typeof(UserRole), role);
+        }
     }
 
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum UserRole
     {
         User,

@@ -31,7 +31,7 @@ namespace DAMProject.Server.Repositories
         public async Task<int> CreateUser(User user)
         {
             var query = "INSERT INTO users (name, email, password, role, created_at) VALUES (@Name, @Email, @Password, @Role, @CreatedAt)";
-            var result = await _localDbConnection.ExecuteAsync(query, new { user.Name, user.Email, user.Password, Role = user.Role.ToString(), user.CreatedAt });
+            var result = await _localDbConnection.ExecuteAsync(query, new { user.Name, user.Email, user.Password, Role = user.Role.ToString(), CreatedAt=DateTime.Now});
 
             return result > 0 ? result : throw new Exception("Error al insertar el usuario.");
         }
@@ -49,6 +49,7 @@ namespace DAMProject.Server.Repositories
             var updatedUser = MapUser(newUser, currentUser);
 
             var query = "UPDATE users SET name = @Name, email = @Email, password = @Password, role = @Role WHERE id = @Id";
+            var nombreRandom = updatedUser.Role.ToString();
             var result = await _localDbConnection.ExecuteAsync(query, new
             {
                 updatedUser.Name,
@@ -75,8 +76,7 @@ namespace DAMProject.Server.Repositories
                 Name = !string.IsNullOrEmpty(newUser.Name) ? newUser.Name : currentUser.Name,
                 Email = !string.IsNullOrEmpty(newUser.Email) ? newUser.Email : currentUser.Email,
                 Password = !string.IsNullOrEmpty(newUser.Password) ? newUser.Password : currentUser.Password,
-                Role = newUser.Role != default ? newUser.Role : currentUser.Role,
-                CreatedAt = newUser.CreatedAt != default ? newUser.CreatedAt : currentUser.CreatedAt
+                Role = User.IsRoleValid(newUser.Role) ? newUser.Role : currentUser.Role,
             };
         }
     }
