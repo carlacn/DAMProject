@@ -10,8 +10,8 @@
                     <BarItem>
                         <TextEdit Placeholder="Search by title..."
                                   Immediate="true" 
-                                  Icon="IconName.Search" 
-                                  TextChanged="@((text) => FilterBooks(text))" />
+                                  Icon="IconName.Search"
+                                  TextChanged="@(async (text) => await FilterBooks(text))" />
                     </BarItem>
                 </BarStart>
             </Bar>
@@ -84,20 +84,18 @@
                 <h4>Agregar a Favoritos</h4>
                 <div class="form-group mb-3">
                     <label>Format:</label>
-                    <Select @bind-Value="favoriteFormat" TValue="Format" Class="form-select">
-                        @foreach (var format in Enum.GetValues<Format>())
-                        {
-                            <SelectItem Value="@(format)">@format</SelectItem>
-                        }
+                    <Select @bind-SelectedValue="@favoriteFormat" TValue="int" Class="form-select">
+                        <SelectItem Value="0">Digital</SelectItem>
+                        <SelectItem Value="1">Physical</SelectItem>
                     </Select>
                 </div>
                 <div class="form-group mb-3">
                     <label>Status:</label>
-                    <Select @bind-Value="favoriteStatus" TValue="Status" Class="form-select">
-                        @foreach (var status in Enum.GetValues<Status>())
-                        {
-                            <SelectItem Value="@(status)">@status</SelectItem>
-                        }
+                    <Select @bind-SelectedValue="@favoriteStatus" TValue="int" Class="form-select">
+                        <SelectItem Value="0">Pending</SelectItem>
+                        <SelectItem Value="1">Read</SelectItem>
+                        <SelectItem Value="2">Current Read</SelectItem>
+                        <SelectItem Value="3">Abandoned</SelectItem>
                     </Select>
                 </div>
                 <div class="form-group mb-3">
@@ -106,7 +104,7 @@
                 </div>
             </ModalBody>
             <ModalFooter>
-                <Button Color="Color.Primary">
+                <Button Color="Color.Primary" Clicked="@SaveFavorite">
                     Guardar
                 </Button>
                 <Button Color="Color.Secondary" Clicked="@CloseFavoritesModal">
@@ -162,8 +160,8 @@
 
     private string searchTerm = "";
 
-    private Format favoriteFormat = Format.Digital;
-    private Status favoriteStatus = Status.Pending;
+    private int favoriteFormat = 0;
+    private int favoriteStatus = 0;
     private DateTime favoriteReadDate = DateTime.Today;
 
     private int userScore = 0;  
@@ -199,6 +197,31 @@
     {
         showFavoritesModal = false;
     }
+
+
+    private async Task SaveFavorite()
+    {
+        if (selectedBook == null)
+            return;
+
+        var favorite = new Favorites
+            {
+                BookId = selectedBook.Id,
+                Format = (Format)favoriteFormat,
+                Status = (Status)favoriteStatus,
+                ReadDate = favoriteReadDate
+            };
+
+        var response = await Http.PostAsJsonAsync("api/favorites", favorite);
+
+        if (response.IsSuccessStatusCode)
+        {
+            await FilterBooks(searchTerm);
+        }
+
+        CloseFavoritesModal();
+    }
+
     private void ShowScoresModal()
     {
         showScoresModal = true;
@@ -209,7 +232,7 @@
         showScoresModal = false;
     }
 
-    private void FilterBooks(string text)
+    private async Task FilterBooks(string text)
     {
         searchTerm = text;
         filteredBooks = string.IsNullOrWhiteSpace(searchTerm)

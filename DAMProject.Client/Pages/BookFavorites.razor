@@ -1,0 +1,137 @@
+﻿@page "/book-favorites"
+@using DAMProject.Shared.DTOs
+@inject HttpClient Http
+@inject DAMProject.Client.Auth.IAuthService AuthService
+
+<Layout>
+    <LayoutContent>
+        <div class="container mt-3">
+            @if (favoriteBooks != null && favoriteBooks.Any())
+            {
+                <DataGrid TItem="FavoriteBookDTO"
+                          Data="@favoriteBooks"
+                          @bind-SelectedRow="@selectedFavorite"
+                          Editable
+                          Responsive
+                          ShowPager
+                          CommandMode="DataGridCommandMode.ButtonRow"
+                          EditMode="DataGridEditMode.Popup"
+                          RowUpdated="RowUpdated"
+                          RowRemoved="RowRemoved">
+                    <DataGridColumns>
+                        <DataGridCommandColumn EditCommandAllowed="true" DeleteCommandAllowed="true" CancelCommandAllowed="true">
+                            <SaveCommandTemplate>
+                                <Button ElementId="btnSave" Type="ButtonType.Submit" PreventDefaultOnSubmit Color="Color.Primary" Clicked="@context.Clicked">@context.LocalizationString</Button>
+                            </SaveCommandTemplate>
+                            <CancelCommandTemplate>
+                                <Button ElementId="btnCancel" Color="Color.Secondary" Clicked="@context.Clicked">@context.LocalizationString</Button>
+                            </CancelCommandTemplate>
+                        </DataGridCommandColumn>
+
+                        <DataGridColumn TItem="FavoriteBookDTO" Field="Title" Caption="Book" Editable="false" />
+                        <DataGridColumn TItem="FavoriteBookDTO" Field="Genre" Caption="Genre" Editable="false" />
+                        <DataGridColumn TItem="FavoriteBookDTO" Field="Publisher" Caption="Publisher" Editable="false" />
+                        <DataGridColumn TItem="FavoriteBookDTO" Field="Series" Caption="Series" Editable="false" />
+                        <DataGridColumn TItem="FavoriteBookDTO" Field="Format" Caption="Format" Editable="true">
+                            <EditTemplate Context="context">
+                                <Select TValue="int" SelectedValue="@((int)context.CellValue)"
+                                        SelectedValueChanged="@(v => context.CellValue = v)">
+                                    <SelectItem Value="0">Digital</SelectItem>
+                                    <SelectItem Value="1">Physical</SelectItem>
+                                </Select>
+                            </EditTemplate>
+                        </DataGridColumn>
+                        <DataGridColumn TItem="FavoriteBookDTO" Field="Status" Caption="Status" Editable="true">
+                            <EditTemplate Context="context">
+                                <Select TValue="int" SelectedValue="@((int)context.CellValue)"
+                                        SelectedValueChanged="@(v => context.CellValue = v)">
+                                    <SelectItem Value="0">Pending</SelectItem>
+                                    <SelectItem Value="1">Read</SelectItem>
+                                    <SelectItem Value="2">Current Read</SelectItem>
+                                    <SelectItem Value="3">Abandoned</SelectItem>
+                                </Select>
+                            </EditTemplate>
+                        </DataGridColumn>
+                        <DataGridColumn TItem="FavoriteBookDTO" Field="ReadDate" Caption="Read Date" Editable="true">
+                            <EditTemplate Context="context">
+                                <DateEdit TValue="DateTime?" Date="@((DateTime?)context.CellValue)"
+                                          DateChanged="@(v => context.CellValue = v)" />
+                            </EditTemplate>
+                        </DataGridColumn>
+                    </DataGridColumns>
+                    <ButtonRowTemplate>
+                        <Button Color="Color.Primary" Disabled="(selectedFavorite is null)" Clicked="context.EditCommand.Clicked">Edit</Button>
+                        <Button Color="Color.Danger" Disabled="(selectedFavorite is null)" Clicked="@(() => DeleteSelectedFavorite())">Delete</Button>
+                    </ButtonRowTemplate>
+                </DataGrid>
+            }
+            else
+            {
+                <p>No tienes libros favoritos.</p>
+            }
+        </div>
+    </LayoutContent>
+</Layout>
+
+@code {
+    private List<FavoriteBookDTO>? favoriteBooks;
+    private FavoriteBookDTO? selectedFavorite;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadFavoriteBooks();
+    }
+
+    private async Task LoadFavoriteBooks()
+    {
+        favoriteBooks = await Http.GetFromJsonAsync<List<FavoriteBookDTO>>("api/favorites/user");
+    }
+
+    private async Task RowUpdated(SavedRowItem<FavoriteBookDTO, Dictionary<string, object>> e)
+    {
+        var favoriteDTO = e.Item;
+        var favorite = MapFavoriteDTO(favoriteDTO);
+
+        var response = await Http.PutAsJsonAsync($"api/favorites/{favorite.Id}", favorite);
+
+        if (response.IsSuccessStatusCode)
+        {
+            await LoadFavoriteBooks();
+        }
+    }
+
+    private Favorites MapFavoriteDTO(FavoriteBookDTO favoriteDTO)
+    {
+        return new Favorites
+            {
+                Id = favoriteDTO.FavoriteId,
+                BookId = favoriteDTO.BookId,
+                Format = Favorites.IsFormatValid(favoriteDTO.Format) ? favoriteDTO.Format : Format.Digital, // Valor por defecto
+                Status = Favorites.IsStatusValid(favoriteDTO.Status) ? favoriteDTO.Status : Status.Pending, // Valor por defecto
+                ReadDate = favoriteDTO.ReadDate ?? DateTime.Today // Valor por defecto para fechas nulas
+            };
+    }
+
+    private async Task RowRemoved(FavoriteBookDTO favorite)
+    {
+        await RemoveFavorite(favorite.FavoriteId);
+    }
+
+    private async Task DeleteSelectedFavorite()
+    {
+        if (selectedFavorite != null)
+        {
+            await RemoveFavorite(selectedFavorite.FavoriteId);
+            selectedFavorite = null;
+        }
+    }
+
+    private async Task RemoveFavorite(int favoriteId)
+    {
+        var response = await Http.DeleteAsync($"api/favorites/{favoriteId}");
+        if (response.IsSuccessStatusCode)
+        {
+            await LoadFavoriteBooks();
+        }
+    }
+}

@@ -26,6 +26,18 @@ namespace DAMProject.Server.Controllers
             return "Este es un recurso para usuarios regulares y administradores.";
         }
 
+        [HttpGet("userID")]
+        public ActionResult<int> GetUserId()
+        {
+            var userId = _authService.GetUserId();
+            if (userId == null)
+            {
+                return NotFound();
+            }
+            return userId;
+
+        }
+
         [HttpGet("status")]
         public ActionResult<AuthenticationStatus> GetAuthenticationStatus()
         {

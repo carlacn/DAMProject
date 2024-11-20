@@ -16,6 +16,7 @@ namespace DAMProject.Server.Auth
         Task Register(RegisterRequest request);
         Task<bool> UserExists(string email);
         AuthenticationStatus GetUserAuthenticationStatus();
+        int? GetUserId();
         Task<string?> RenewToken();
         void LogOut();
     }
@@ -100,6 +101,16 @@ namespace DAMProject.Server.Auth
                     Role = null
                 };
             }
+        }
+
+        public int? GetUserId()
+        {
+            var token = _httpContextAccessor.HttpContext.Session.GetString("JwtToken");
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var jwtToken = tokenHandler.ReadJwtToken(token);
+            var IdClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Jti);
+            
+            return int.TryParse(IdClaim?.Value, out var userID) ? userID: null;
         }
 
         public async Task<string?> RenewToken()
