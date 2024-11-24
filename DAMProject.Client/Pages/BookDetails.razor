@@ -21,11 +21,13 @@
             <div class="row mt-3">
                 @if (filteredBooks != null && filteredBooks.Any())
                 {
+                    <CardDeck>
                     @foreach (var book in filteredBooks)
                     {
-                        <div class="col-12 mb-3">
+                        var bookUrl = @apiImagesUrl + @book.Image;
+                        <Div Class="col-4 mb-4">
                             <Card>
-                                <CardImage Src="@book.Image" Alt="Book Image" />
+                                    <CardImage Src="@bookUrl" Alt="Book Image" Style="height: 550px" />
                                 <CardBody>
                                     <CardTitle>@book.Title</CardTitle>
                                     <Button Color="Color.Primary" Margin="Margin.Is2.FromTop" Clicked="@(() => ShowBookDetails(book.Id))">
@@ -33,8 +35,9 @@
                                     </Button>
                                 </CardBody>
                             </Card>
-                        </div>
+                        </Div>
                     }
+                    </CardDeck>
                 }
                 else
                 {
@@ -47,11 +50,12 @@
 
 @if (showModal && selectedBook != null)
 {
+    var bookUrl = @apiImagesUrl + @selectedBook.Image;
     <Modal Visible="true" Toggled="@CloseModal">
         <ModalContent Centered>
             <ModalBody>
                 <Card>
-                    <CardImage Src="@selectedBook.Image" Alt="Book Image" />
+                    <CardImage Src="@bookUrl" Alt="Book Image" Style="height: 550px"/>
                     <CardBody>
                         <CardTitle>@selectedBook.Title</CardTitle>
                         <CardText>Genre: @selectedBook.Genre</CardText>
@@ -164,11 +168,16 @@
     private int favoriteStatus = 0;
     private DateTime favoriteReadDate = DateTime.Today;
 
+    private string apiImagesUrl = string.Empty;
+
     private int userScore = 0;  
     private string userComment = ""; 
 
     protected override async Task OnInitializedAsync()
     {
+        var apiUrl = Http.BaseAddress?.ToString() ?? string.Empty;
+        apiImagesUrl = $"{apiUrl}api/images/";
+
         books = await Http.GetFromJsonAsync<List<BookDetailsDTO>>("api/book/details");
         filteredBooks = books;
     }

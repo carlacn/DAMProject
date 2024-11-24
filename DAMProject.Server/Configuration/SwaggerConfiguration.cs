@@ -8,6 +8,7 @@ namespace DAMProject.Server.Configuration
         {            
             builder.Services.AddSwaggerGen(c =>
             {
+                c.OperationFilter<FileUploadOperationFilter>();
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "BlazorWebAssemblyTemplate.Server", Version = "v1" });
             });
 
