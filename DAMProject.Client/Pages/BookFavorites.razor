@@ -106,9 +106,9 @@
             {
                 Id = favoriteDTO.FavoriteId,
                 BookId = favoriteDTO.BookId,
-                Format = Favorites.IsFormatValid(favoriteDTO.Format) ? favoriteDTO.Format : Format.Digital, // Valor por defecto
-                Status = Favorites.IsStatusValid(favoriteDTO.Status) ? favoriteDTO.Status : Status.Pending, // Valor por defecto
-                ReadDate = favoriteDTO.ReadDate ?? DateTime.Today // Valor por defecto para fechas nulas
+                Format = Favorites.IsFormatValid(favoriteDTO.Format) ? favoriteDTO.Format : Format.Digital, 
+                Status = Favorites.IsStatusValid(favoriteDTO.Status) ? favoriteDTO.Status : Status.Pending, 
+                ReadDate = favoriteDTO.ReadDate ?? DateTime.Today 
             };
     }
 

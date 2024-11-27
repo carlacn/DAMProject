@@ -32,11 +32,6 @@ namespace DAMProject.Server.Controllers
 
                 const int targetHeight = 550;
 
-
-                //using (var stream = new FileStream(filePath, FileMode.Create))
-                //{
-                //    await request.File.CopyToAsync(stream);
-                //}
                 using (var image = await Image.LoadAsync(request.File.OpenReadStream())) 
                 {
                     var aspectRatio = (double)image.Width / image.Height;

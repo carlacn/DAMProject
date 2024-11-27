@@ -4,14 +4,12 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DAMProject.Server.Controllers
 {
-    //[Authorize(Policy = "AdminPolicy")]
     [ApiController]
     [Route("api/[controller]")]
     public class BookController(IBookService bookService) : ControllerBase
     {
         private readonly IBookService _bookService = bookService;
 
-        //[Authorize(Policy = "UserPolicy")]
         [HttpGet]
         public async Task<IActionResult> GetBooks()
         {

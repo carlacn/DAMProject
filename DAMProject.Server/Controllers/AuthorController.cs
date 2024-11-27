@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DAMProject.Server.Controllers
 {
-    //[Authorize(Policy = "AdminPolicy")]
     [ApiController]
     [Route("api/[controller]")]
     public class AuthorController(IAuthorService authorService) : ControllerBase

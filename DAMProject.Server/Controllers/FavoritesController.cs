@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace DAMProject.Server.Controllers
 {
-    //[Authorize(Policy = "UserPolicy")]
     [ApiController]
     [Route("api/[controller]")]
     public class FavoritesController(IFavoritesService favoritesService, IAuthService authService) : ControllerBase

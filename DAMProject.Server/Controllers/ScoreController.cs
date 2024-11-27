@@ -16,7 +16,6 @@ namespace DAMProject.Server.Controllers
         }
 
         [HttpGet]
-        //[Authorize(Policy = "UserPolicy")]
         public async Task<IActionResult> GetScores()
         {
             var response = await _scoreService.GetScores();
@@ -24,7 +23,6 @@ namespace DAMProject.Server.Controllers
         }
 
         [HttpGet("{id}")]
-        //[Authorize(Policy = "UserPolicy")]
         public async Task<IActionResult> GetScoreById(int id)
         {
             var score = await _scoreService.GetScoreById(id);
@@ -32,7 +30,6 @@ namespace DAMProject.Server.Controllers
         }
 
         [HttpPost]
-        //[Authorize(Policy = "UserPolicy")]
         public async Task<IActionResult> CreateScore([FromBody] Score score)
         {
             await _scoreService.CreateScore(score);
@@ -40,7 +37,6 @@ namespace DAMProject.Server.Controllers
         }
 
         [HttpPut("{id}")]
-        //[Authorize(Policy = "UserPolicy")]
         public async Task<IActionResult> UpdateScore(int id, [FromBody] Score score)
         {
             if (id != score.Id) return BadRequest();
@@ -49,7 +45,6 @@ namespace DAMProject.Server.Controllers
         }
 
         [HttpDelete("{id}")]
-        //[Authorize(Policy = "UserPolicy")]
         public async Task<IActionResult> DeleteScore(int id)
         {
             await _scoreService.DeleteScore(id);

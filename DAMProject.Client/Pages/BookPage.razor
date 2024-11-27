@@ -72,16 +72,8 @@
         </DataGridColumn>
         <DataGridColumn TItem="Book" Field="Comments" Caption="Comments" Editable="true" />
 
-        <DataGridColumn TItem="Book" Field="Image" Caption="Image" Editable>
-            <EditTemplate>
-                <div class="w-100">
-                    <FileEdit Changed="@OnChanged" Style="width: 100%;" Filter="image/*" AutoReset="false"/>
-                </div>
-            </EditTemplate>
-            <DisplayTemplate Context="Book">
-                <img src="@Book.Image" alt="Book Image" width="100" height="100" />
-            </DisplayTemplate>
-        </DataGridColumn>
+        <DataGridColumn TItem="Book" Field="Image" Caption="Image" Editable="true" />
+
     </DataGridColumns>
 
     <ButtonRowTemplate>
@@ -126,15 +118,29 @@
     private async Task RowUpdated(SavedRowItem<Book, Dictionary<string, object>> e)
     {
         var book = e.Item;
-        book.Image = fileToUpload.Name;
+
+        if (fileToUpload != null)
+        {
+            book.Image = fileToUpload.Name;
+            await UploadImage();
+        }
+
         var response = await Http.PutAsJsonAsync($"api/book/{book.Id}", book);
 
-        await UploadImage();
+        if (!response.IsSuccessStatusCode)
+        {
+            Console.WriteLine("Error al actualizar el libro.");
+        }
+        else
+        {
+            Console.WriteLine("Libro actualizado correctamente.");
+        }
 
         if (!response.IsSuccessStatusCode)
         {
             NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
         }
+
     }
 
     private async Task RowRemoved(Book Book)
@@ -152,19 +158,12 @@
         {
             foreach (var file in e.Files)
             {
-                // A stream is going to be the destination stream we're writing to.
                 using (var stream = new MemoryStream())
                 {
-                    // Here we're telling the FileEdit where to write the upload result
                     await file.WriteToStreamAsync(stream);
 
-                    // Once we reach this line it means the file is fully uploaded.
-                    // In this case we're going to offset to the beginning of file
-                    // so we can read it.
                     stream.Seek(0, SeekOrigin.Begin);
 
-                    // Use the stream reader to read the content of uploaded file,
-                    // in this case we can assume it is a textual file.
                     using (var reader = new StreamReader(stream))
                     {
                         fileContent = await reader.ReadToEndAsync();
@@ -189,13 +188,10 @@
         {
             using (var stream = fileToUpload.OpenReadStream(long.MaxValue))
             {
-                // Crear el contenido para el archivo
                 var fileContent = new StreamContent(stream);
                 fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
-                // Agregar el archivo al formulario con el nombre del campo "File"
                 content.Add(fileContent, "File", fileToUpload.Name);
 
-                // Enviar la solicitud al servidor
                 var response = await Http.PostAsync("api/images/upload-image", content);
                 if (response.IsSuccessStatusCode)
                 {

@@ -35,10 +35,17 @@ namespace DAMProject.Server.Repositories
 
 		public async Task<int> CreateBook(Book book)
         {
-            //TODO pasar a bbdd.
             if (book.SeriesId == 0)
             {
                 book.SeriesId = 1;
+            }
+            if (book.GenreId == 0)
+            {
+                book.GenreId = 1;
+            }
+            if (book.PublisherId == 0)
+            {
+                book.PublisherId = 1;
             }
             var query = @"INSERT INTO books (title, genre_id, publisher_id, series_id, comments, user_id, image)
                   VALUES (@Title, @GenreId, @PublisherId, @SeriesId, @Comments, @UserId, @Image)";
