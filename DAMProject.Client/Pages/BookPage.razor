@@ -71,8 +71,13 @@
             </EditTemplate>
         </DataGridColumn>
         <DataGridColumn TItem="Book" Field="Comments" Caption="Comments" Editable="true" />
-
-        <DataGridColumn TItem="Book" Field="Image" Caption="Image" Editable="true" />
+        <DataGridColumn TItem="Book" Field="Image" Caption="Image" Editable>
+            <EditTemplate>
+                <div class="w-100">
+                    <FileEdit Changed="@OnChanged" Style="width: 100%;" Filter="image/*" AutoReset="false" />
+                </div>
+            </EditTemplate>
+        </DataGridColumn>
 
     </DataGridColumns>
 
@@ -107,6 +112,12 @@
     private async Task RowInserted(SavedRowItem<Book, Dictionary<string, object>> e)
     {
         var newBook = e.Item;
+        if (fileToUpload != null)
+        {
+            // Asigna el nombre del archivo a la propiedad Image
+            newBook.Image = fileToUpload.Name;
+            await UploadImage();
+        }
         var response = await Http.PostAsJsonAsync("api/book", newBook);
 
         if (response.IsSuccessStatusCode)
